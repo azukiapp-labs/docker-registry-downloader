@@ -1,0 +1,42 @@
+{
+  "name": "registry-downloader",
+  "version": "0.0.1",
+  "description": "docker registry downloader",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/saitodisse/registry-downloader.git"
+  },
+  "keywords": [
+    "docker",
+    "registry"
+  ],
+  "author": "saitodisse",
+  "license": "Apache",
+  "bugs": {
+    "url": "https://github.com/saitodisse/registry-downloader/issues"
+  },
+  "homepage": "https://github.com/saitodisse/registry-downloader",
+  "dependencies": {
+    "lodash": "^2.4.1",
+    "q": "^1.0.1",
+    "source-map-support": "^0.2.7",
+    "traceur": "0.0.72"
+  },
+  "devDependencies": {
+    "chai": "^1.9.1",
+    "chai-as-promised": "^4.1.1",
+    "chai-things": "^0.2.0",
+    "gulp": "^3.8.8",
+    "gulp-clean": "^0.3.1",
+    "gulp-concat": "^2.4.1",
+    "gulp-plumber": "^0.6.6",
+    "gulp-sourcemaps": "^1.2.4",
+    "gulp-traceur": "^0.13.0",
+    "gulp-mocha": "^2.0.0",
+    "gulp-util": "^3.0.1"
+  }
+}
