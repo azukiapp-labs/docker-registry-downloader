@@ -3,6 +3,7 @@ var sourcemaps = require('gulp-sourcemaps');
 var traceur = require('gulp-traceur');
 var clean = require('gulp-clean');
 var plumber = require('gulp-plumber');
+var yargs = require('yargs');
 
 var sources = ['src/**/*.js'];
 var testSources = ['spec/**/*_spec.js'];
@@ -62,7 +63,7 @@ gulp.task('mocha', ['build'], function() {
 
     return gulp.src(testTranspiled, { read: false })
         .pipe( mocha( {
-            reporter: 'spec', growl: 'true'
+            reporter: 'spec', growl: 'true', grep: yargs.argv.grep, timeout: 10000
         } ))
-        //.on('error', gutil.log);
+        .on('error', gutil.log);
 });
