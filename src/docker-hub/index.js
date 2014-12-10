@@ -29,6 +29,12 @@ class DockerHub {
       };
       function callback(error, response, body) {
         if (!error && response.statusCode == 200) {
+
+          // ---------------------------------------
+          // response.headers
+          // ---------------------------------------
+          // X-Docker-Endpoints → registry-1.docker.io
+          // X-Docker-Token → signature=0aeea6bc91a4d1d0ff7892c9c101df17ce9c8a60,repository="azukiapp/azktcl",access=read
           var result = {
             endpoint: response.headers['x-docker-endpoints'],
             token:    response.headers['x-docker-token'],
@@ -53,6 +59,23 @@ class DockerHub {
       };
       function callback(error, response, body) {
         if (!error && response.statusCode == 200) {
+          // ---------------------------------------
+          // search body result
+          // ---------------------------------------
+          // {
+          //    "query":"azktcl",
+          //    "num_results":1,
+          //    "results":[
+          //       {
+          //          "is_automated":true,
+          //          "name":"azukiapp/azktcl",
+          //          "is_trusted":true,
+          //          "is_official":false,
+          //          "star_count":0,
+          //          "description":""
+          //       }
+          //    ]
+          // }
           resolve(JSON.parse(body));
         }
         else {
