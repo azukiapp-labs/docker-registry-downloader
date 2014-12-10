@@ -43,6 +43,26 @@ class DockerHub {
     });
   }
 
+  search(query) {
+    return new Q.Promise(function (resolve, reject, notify){
+      var options = {
+        url: DOCKER_HUB_URL + '/v1/search',
+        qs: {
+          q: query
+        }
+      };
+      function callback(error, response, body) {
+        if (!error && response.statusCode == 200) {
+          resolve(JSON.parse(body));
+        }
+        else {
+          reject(error);
+        }
+      }
+      request(options, callback);
+    });
+  }
+
 }
 
 module.exports = {

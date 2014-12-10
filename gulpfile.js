@@ -63,7 +63,7 @@ gulp.task('mocha', ['build'], function() {
 
     return gulp.src(testTranspiled, { read: false })
         .pipe( mocha( {
-            reporter: 'spec', growl: 'true', grep: yargs.argv.grep, timeout: 10000
+            reporter: 'spec', growl: 'true', grep: yargs.argv.grep, timeout: 4000
         } ))
         .on('error', gutil.log);
 });

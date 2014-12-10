@@ -18,12 +18,22 @@ describe('Docker HUB API', function() {
     var docker_pass = process.env.DOCKER_PASS;
 
     if(!docker_user || !docker_pass) {
+      console.log('    - DOCKER_USER and DOCKER_PASS envs not found. Ignoring this test. (see README)');
       return done();
     }
 
     Q.spawn(function* () {
       var result = yield dockerHub.auth('azukiapp', docker_user, docker_pass);
       chai.expect(result).to.have.length(2);
+      done();
+    });
+  });
+
+  it('should search for azktcl', function(done) {
+    Q.spawn(function* () {
+      var result = yield dockerHub.search('azktcl');
+      chai.expect(result.results).to.have.length.above(0);
+      chai.expect(result.results[0].name).to.equal('azukiapp/azktcl');
       done();
     });
   });
