@@ -1,6 +1,7 @@
 require('source-map-support').install();
 var chai  = require('chai');
 var Q  = require('q');
+var log = require('../../src/helpers/logger');
 var logError = require('../../src/helpers/error-helper');
 import DockerHub from '../../src/docker-hub';
 Q.onerror = logError;
@@ -18,7 +19,7 @@ describe('Docker HUB API', function() {
     var docker_pass = process.env.DOCKER_PASS;
 
     if(!docker_user || !docker_pass) {
-      console.log('    - DOCKER_USER and DOCKER_PASS envs not found. Ignoring this test. (see README)');
+      log.info('    - DOCKER_USER and DOCKER_PASS envs not found. Ignoring this test. (see README)');
       return done();
     }
 

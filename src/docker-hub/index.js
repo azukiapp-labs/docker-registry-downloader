@@ -2,6 +2,7 @@ var request = require('request');
 var DOCKER_HUB_URL = 'https://index.docker.io';
 var Q  = require('q');
 var request = require('request');
+var log = require('../helpers/logger');
 
 class DockerHub {
 
@@ -10,6 +11,8 @@ class DockerHub {
       var url = DOCKER_HUB_URL + '/v1/repositories/'+ namespace +'/auth';
       request.get(url).auth(user, password, false, function (error, response, body) {
         if (!error && response.statusCode == 200) {
+          log.debug('\n\n:: docker-hub - auth ::');
+          log.debug(response.headers);
           resolve(response.headers['set-cookie']);
         }
         else {
@@ -35,6 +38,8 @@ class DockerHub {
           // ---------------------------------------
           // X-Docker-Endpoints → registry-1.docker.io
           // X-Docker-Token → signature=0aeea6bc91a4d1d0ff7892c9c101df17ce9c8a60,repository="azukiapp/azktcl",access=read
+          log.debug('\n\n:: docker-hub - images ::');
+          log.debug(response.headers);
           var result = {
             endpoint: response.headers['x-docker-endpoints'],
             token:    response.headers['x-docker-token'],
@@ -76,7 +81,10 @@ class DockerHub {
           //       }
           //    ]
           // }
-          resolve(JSON.parse(body));
+          var result = JSON.parse(body);
+          log.debug('\n\n:: docker-hub - search ::');
+          log.debug(result);
+          resolve(result);
         }
         else {
           reject(error);

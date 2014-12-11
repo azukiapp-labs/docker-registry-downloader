@@ -18,6 +18,9 @@ module.exports = function(title, err) {
         err = title;
     }
 
+    if(!err.message){
+      return;
+    }
 
     line = '  ' + repeating('-', err.message.length - 2);
     error.push(line);

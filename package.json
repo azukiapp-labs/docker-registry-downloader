@@ -24,11 +24,14 @@
     "cli-color": "^0.3.2",
     "indent-string": "^1.2.0",
     "lodash": "^2.4.1",
+    "pretty-bytes": "^1.0.2",
+    "progress": "^1.1.8",
     "q": "^1.0.1",
     "repeating": "^1.1.0",
     "request": "^2.50.0",
     "source-map-support": "^0.2.7",
-    "traceur": "0.0.72"
+    "traceur": "0.0.72",
+    "winston": "^0.8.3"
   },
   "devDependencies": {
     "chai": "^1.9.1",
