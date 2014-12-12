@@ -21,7 +21,7 @@ gulp test
 NODE_DEBUG=request gulp test
 
 # enable "REGISTRY" debug
-REGISTRY_DEBUG_LEVEL=debug gulp test
+DOCKER_REGISTRY_DEBUG_LEVEL=debug gulp test
 
 # send authentication
 DOCKER_USER=my_docker_user DOCKER_PASS=my_docker_escapade_password gulp test

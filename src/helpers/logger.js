@@ -4,7 +4,7 @@ log.add(winston.transports.Console, {
   handleExceptions: true,
   colorize: true,
   prettyPrint: true,
-  level: process.env.REGISTRY_DEBUG_LEVEL
+  level: process.env.DOCKER_REGISTRY_DEBUG_LEVEL
 });
 
 module.exports = log;
