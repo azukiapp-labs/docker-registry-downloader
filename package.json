@@ -1,10 +1,11 @@
 {
-  "name": "registry-downloader",
-  "version": "0.0.1",
+  "name": "docker-registry-downloader",
+  "version": "0.1.0",
   "description": "docker registry downloader",
   "main": "index.js",
   "scripts": {
-    "test": "mocha spec"
+    "test": "gulp mocha",
+    "deploy": "bash script/publishPatch.sh"
   },
   "repository": {
     "type": "git",
@@ -12,10 +13,13 @@
   },
   "keywords": [
     "docker",
-    "registry"
+    "registry",
+    "downloader",
+    "docker hub",
+    "docker registry"
   ],
   "author": "saitodisse",
-  "license": "Apache",
+  "license": "Apache License",
   "bugs": {
     "url": "https://github.com/saitodisse/registry-downloader/issues"
   },
@@ -27,13 +31,13 @@
     "pretty-bytes": "^1.0.2",
     "progress": "^1.1.8",
     "q": "^1.0.1",
-    "repeating": "^1.1.0",
     "request": "^2.50.0",
-    "source-map-support": "^0.2.7",
-    "traceur": "0.0.72",
     "winston": "^0.8.3"
   },
   "devDependencies": {
+    "repeating": "^1.1.0",
+    "source-map-support": "^0.2.7",
+    "traceur": "0.0.72",
     "chai": "^1.9.1",
     "chai-as-promised": "^4.1.1",
     "chai-things": "^0.2.0",
