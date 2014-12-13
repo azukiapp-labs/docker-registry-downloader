@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/saitodisse/registry-downloader.git"
+    "url": "https://github.com/saitodisse/docker-registry-downloader.git"
   },
   "keywords": [
     "docker",
@@ -21,11 +21,12 @@
   "author": "saitodisse",
   "license": "Apache License",
   "bugs": {
-    "url": "https://github.com/saitodisse/registry-downloader/issues"
+    "url": "https://github.com/saitodisse/docker-registry-downloader/issues"
   },
-  "homepage": "https://github.com/saitodisse/registry-downloader",
+  "homepage": "https://github.com/saitodisse/docker-registry-downloader",
   "dependencies": {
     "cli-color": "^0.3.2",
+    "dockerode": "^2.0.4",
     "indent-string": "^1.2.0",
     "lodash": "^2.4.1",
     "pretty-bytes": "^1.0.2",
