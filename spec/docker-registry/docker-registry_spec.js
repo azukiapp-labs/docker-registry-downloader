@@ -136,7 +136,7 @@ describe('Docker Registry API', function() {
       var imageId_5_Size = ' 3.07 MB';
       var result = yield dockerRegistry.downloadImage(hubResultAzktcl.endpoint,
                                                       hubResultAzktcl.token,
-                                                      'spec/output',
+                                                      'spec/docker-registry/output',
                                                       imageId_5);
 
       chai.expect(result).to.eql(imageId_5 + imageId_5_Size);
