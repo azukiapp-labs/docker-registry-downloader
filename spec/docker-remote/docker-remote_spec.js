@@ -19,7 +19,7 @@ describe('Docker Remote API', function() {
     var dockerRemote = new DockerRemote();
     Q.spawn(function* () {
       var result = yield dockerRemote.listAllContainers();
-      chai.expect(result).to.have.length.above(20);
+      chai.expect(result).to.not.be.undefined();
       done();
     });
   });
@@ -28,7 +28,7 @@ describe('Docker Remote API', function() {
     var dockerRemote = new DockerRemote();
     Q.spawn(function* () {
       var result = yield dockerRemote.listActiveContainers();
-      chai.expect(result).to.have.length.below(20);
+      chai.expect(result).to.not.be.undefined();
       done();
     });
   });
@@ -37,14 +37,42 @@ describe('Docker Remote API', function() {
     var dockerRemote = new DockerRemote();
     Q.spawn(function* () {
       var result = yield dockerRemote.listImages();
+      chai.expect(result).to.not.be.undefined();
+      done();
+    });
+  });
 
-      /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.      DEBUG */
-        //           ------------------------------------------
-        var target = result;
-        //           ------------------------------------------
-        var depth  = 2; var inspectResult=require("util").inspect(target,{showHidden:!0,colors:!0,depth:depth});console.log("\n>>------------------------------------------------------\n  ##  result\n  ------------------------------------------------------\n  source: ( "+__filename+" )"+"\n  ------------------------------------------------------\n"+inspectResult+"\n<<------------------------------------------------------\n");
-      /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-. /END-DEBUG */
+  it('should layers from one image', function(done) {
+    var dockerRemote = new DockerRemote();
+    Q.spawn(function* () {
+      var result = yield dockerRemote.image('afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120');
+      chai.expect(result).to.not.be.undefined();
+      done();
+    });
+  });
 
+  it('should searchImages from tag', function(done) {
+    var dockerRemote = new DockerRemote();
+    Q.spawn(function* () {
+      var result = yield dockerRemote.searchImagesByTag('azukiapp/azktcl:0.0.2');
+      chai.expect(result).to.not.be.undefined();
+      done();
+    });
+  });
+
+  it('should get parent image ID', function(done) {
+    var dockerRemote = new DockerRemote();
+    Q.spawn(function* () {
+      var result = yield dockerRemote.getParent('afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120');
+      chai.expect(result).to.not.be.undefined();
+      done();
+    });
+  });
+
+  it('should get all parents images ID', function(done) {
+    var dockerRemote = new DockerRemote();
+    Q.spawn(function* () {
+      var result = yield dockerRemote.anscestors('afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120');
       chai.expect(result).to.not.be.undefined();
       done();
     });
