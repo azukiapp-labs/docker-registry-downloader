@@ -28,6 +28,7 @@ class DockerRemote {
 				});
 
       } catch(err){
+        log.error(err);
         reject(err);
       }
     }.bind(this));
@@ -44,6 +45,7 @@ class DockerRemote {
 				});
 
       } catch(err){
+        log.error(err);
         reject(err);
       }
     }.bind(this));
@@ -60,17 +62,86 @@ class DockerRemote {
         });
 
       } catch(err){
+        log.error(err);
         reject(err);
       }
     }.bind(this));
   }
 
-  image(imageId) {
+  getImage(imageId) {
     return new Q.Promise(function (resolve, reject, notify){
       try {
 
         var image = this.docker.getImage(imageId);
-        log.debug('\n\n:: docker-remote - image getImage ::');
+        log.debug('\n\n:: docker-remote - image ::');
+        log.debug(image);
+        return resolve(image);
+
+      } catch(err){
+        log.error(err);
+        reject(err);
+      }
+    }.bind(this));
+  }
+
+  inspectImage(image) {
+    return new Q.Promise(function (resolve, reject, notify){
+      try {
+
+        var handler = function (err, data) {
+          if (err) {
+            log.error('\n\n:: docker-remote - image ::');
+            log.error(err);
+            return reject(err);
+          }
+
+          log.debug('\n\n:: docker-remote - image inspect ::');
+          log.debug(data);
+          return resolve(data);
+        };
+
+        image.inspect(handler);
+
+      } catch(err){
+        reject(err);
+      }
+    }.bind(this));
+  }
+
+  removeImage(imageId) {
+    return new Q.Promise(function (resolve, reject, notify){
+      try {
+        Q.spawn(function* () {
+
+          var image = yield this.getImage(imageId);
+
+          var handler = function (err, data) {
+            if (err) {
+              log.error('\n\n:: docker-remote - removeImage ::');
+              log.error(err);
+              return reject(err);
+            }
+
+            log.debug('\n\n:: docker-remote - removeImage ::');
+            log.debug(data);
+            return resolve(data);
+          };
+
+          image.remove(handler);
+
+        }.bind(this));
+
+      } catch(err){
+        reject(err);
+      }
+    }.bind(this));
+
+
+    return new Q.Promise(function (resolve, reject, notify){
+      try {
+
+        var image = this.getImage(imageId);
+        log.debug('\n\n:: docker-remote - removeImage ::');
         log.debug(image);
 
         var handler = function (err, data) {
@@ -148,11 +219,15 @@ class DockerRemote {
       try {
         Q.spawn(function* () {
 
-          var currentImage = yield this.image(imageId);
+          var currentImage = yield this.getImage(imageId);
+          var imageInspect = yield this.inspectImage(currentImage);
           log.debug('\n\n:: docker-remote - getParent ::');
           log.debug('image  ID: ' + imageId);
-          log.debug('parent ID:   ' + currentImage.Parent);
-          return resolve(currentImage);
+          log.debug('parent ID:   ' + imageInspect.Parent);
+          return resolve({
+            image        : currentImage,
+            imageInspect : imageInspect
+          });
 
         }.bind(this));
 
@@ -166,17 +241,18 @@ class DockerRemote {
     return new Q.Promise(function (resolve, reject, notify){
       try {
         Q.spawn(function* () {
-          var imageId = firstImageId;
+          var currentImageId = firstImageId;
           var anscestors = [];
 
-          while (imageId) {
-            var currentImage = yield this.getParent(imageId);
-            anscestors.push(currentImage);
-            imageId = currentImage.Parent;
+          while (currentImageId) {
+            var imageResult = yield this.getParent(currentImageId);
+            anscestors.push(imageResult);
+            currentImageId = imageResult.imageInspect.Parent;
           }
 
-          log.debug('\n\n:: docker-remote - getAllParents ::');
-          log.debug(_.pluck(anscestors, 'Id'));
+          log.debug('\n\n:: docker-remote - anscestors ::');
+          var imageInspectors = _.pluck(anscestors, 'imageInspect');
+          log.debug(_.pluck(imageInspectors, 'Id'));
           return resolve(anscestors);
 
         }.bind(this));
