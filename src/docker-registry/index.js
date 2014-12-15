@@ -171,7 +171,7 @@ class DockerRegistry {
   downloadImage(endpoint, token, outputPath, imageId) {
     return new Q.Promise(function (resolve, reject, notify){
 
-      var outputFile = path.join(outputPath, imageId.toString());
+      var outputFile = path.join(outputPath, imageId.toString() + '.tar');
       var options = {
         url: 'https://' + endpoint + '/v1/images/'+ imageId +'/layer',
         headers: {
