@@ -5,6 +5,8 @@ var Q  = require('q');
 var log = require('../../src/helpers/logger');
 var path = require('path');
 var logError = require('../../src/helpers/error-helper');
+import FsHelper from '../../src/fs-helper';
+var fsHelper = new FsHelper();
 Q.onerror = logError;
 
 import DockerHub from '../../src/docker-hub';
@@ -149,7 +151,7 @@ describe('Docker Registry API', function() {
       var fullPath = path.join(outputFolder, outputFile);
 
       // create output clean folder
-      yield dockerRegistry.createCleanFolder(outputFolder);
+      yield fsHelper.createCleanFolder(outputFolder);
 
       // download
       var result = yield dockerRegistry.downloadImage(hubResultAzktcl.endpoint,

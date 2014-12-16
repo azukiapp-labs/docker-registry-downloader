@@ -2,10 +2,12 @@ var request = require('request');
 var Q  = require('q');
 var log = require('../helpers/logger');
 var fs = require('fs');
-var rmdir = require('rimraf');
 var path = require('path');
 var ProgressBar = require('progress');
 var prettyBytes = require('pretty-bytes');
+
+import FsHelper from '../fs-helper';
+var fsHelper = new FsHelper();
 
 class DockerRegistry {
 
@@ -231,70 +233,6 @@ class DockerRegistry {
     });
   }
 
-  removeDirRecursive(dir) {
-    return new Q.Promise(function (resolve, reject, notify){
-      rmdir(dir, function(err) {
-        if (err) {
-          reject(err);
-        }
-        else{
-          resolve(true);
-        }
-      });
-    });
-  }
-
-  createCleanFolder(fullPath) {
-    return new Q.Promise(function (resolve, reject, notify){
-      try {
-        Q.spawn(function* () {
-          if (yield this.fsExists(fullPath)) {
-            // remove folder if exists
-            yield this.removeDirRecursive(fullPath);
-          }
-          yield Q.nfcall(fs.mkdir, fullPath);
-          resolve(fullPath);
-        }.bind(this));
-      } catch(err){
-        reject(err);
-      }
-    }.bind(this));
-
-  }
-
-  fsExists(fullPath) {
-    return new Q.Promise(function (resolve, reject, notify){
-      try {
-        fs.exists(fullPath, function(result) {
-          resolve(result);
-        });
-      } catch(err){
-        reject(err);
-      }
-    }.bind(this));
-
-  }
-
-  tarPack(folderToPack, outputTarfile) {
-    return new Q.Promise(function (resolve, reject, notify){
-      try {
-        var write = fs.createWriteStream;
-        var pack = require('tar-pack').pack;
-        pack(folderToPack)
-          .pipe(write(outputTarfile))
-          .on('error', function (err) {
-            reject(err);
-          })
-          .on('close', function () {
-            resolve(true);
-          });
-      } catch(err){
-        reject(err);
-      }
-    }.bind(this));
-
-  }
-
   // http://docs.docker.com/reference/api/docker_remote_api_v1.16/#load-a-tarball-with-a-set-of-images-and-tags-into-docker
   prepareLoading(opts) {
     log.debug('\n\n:: docker-registry - prepareLoading - opts::');
@@ -305,7 +243,7 @@ class DockerRegistry {
         Q.spawn(function* () {
           // An image tarball contains one directory per image layer (named using its long ID)
           var outputLoadPath = path.join(opts.outputPath, opts.imageId);
-          yield this.createCleanFolder(outputLoadPath);
+          yield fsHelper.createCleanFolder(outputLoadPath);
 
           // VERSION: currently 1.0 - the file format version
           var versionFilePath = path.join(outputLoadPath, "VERSION");
@@ -321,10 +259,10 @@ class DockerRegistry {
           yield this.downloadImage(opts.endpoint, opts.token, layerTarFilePath, opts.imageId);
 
           // create tar file
-          yield this.tarPack(outputLoadPath, path.join(outputLoadPath, '..', opts.imageId + '.tar'));
+          yield fsHelper.tarPack(outputLoadPath, path.join(outputLoadPath, '..', opts.imageId + '.tar'));
 
           // remove folder
-          yield this.removeDirRecursive(outputLoadPath);
+          yield fsHelper.removeDirRecursive(outputLoadPath);
 
           resolve(outputLoadPath);
 
