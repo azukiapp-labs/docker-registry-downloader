@@ -95,6 +95,23 @@ class Syncronizer {
     }.bind(this));
   }
 
+  downloadAndLoad(opts) {
+    return new Q.Promise(function (resolve, reject, notify){
+      try {
+        Q.spawn(function* () {
+
+          yield this.dockerRegistry.prepareLoading(opts);
+          var result = yield this.dockerRemote.loadImage(opts);
+          resolve(result);
+
+        }.bind(this));
+
+      } catch(err){
+        reject(err);
+      }
+    }.bind(this));
+  }
+
 
 }
 

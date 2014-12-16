@@ -8,11 +8,12 @@ Q.onerror = logError;
 
 import Syncronizer from '../../src/syncronizer';
 import DockerHub from '../../src/docker-hub';
+var syncronizer = new Syncronizer();
 
 describe('Syncronizer', function() {
 
   it('should compare local and registry layers', function(done) {
-    var syncronizer = new Syncronizer();
+
     Q.spawn(function* () {
       var namespace = 'library';
       var repository = 'ruby';
@@ -26,7 +27,7 @@ describe('Syncronizer', function() {
 
   it('should sum all sizes', function(done) {
     this.timeout(30000); // 30 seconds
-    var syncronizer = new Syncronizer();
+
     Q.spawn(function* () {
 
       var diffRuby21Layers = [
@@ -56,5 +57,32 @@ describe('Syncronizer', function() {
       done();
     });
   });
+
+  it('should download, prepare and load one image layer', function(done) {
+    this.timeout(15000); // 15 seconds
+    Q.spawn(function* () {
+
+      var dockerHub = new DockerHub();
+      var namespace = 'azukiapp';
+      var repository = 'azktcl';
+      var hubResult = yield dockerHub.images(namespace, repository);
+
+      var opts = {
+        endpoint  : hubResult.endpoint,
+        token     : hubResult.token,
+        outputPath: __dirname + '/../../../spec/docker-registry/output',
+        imageId   : '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303',
+      };
+
+      var result = yield syncronizer.downloadAndLoad(opts);
+
+      chai.expect(result).to.not.be.undefined();
+      done();
+    });
+
+  });
+
+
+
 
 });

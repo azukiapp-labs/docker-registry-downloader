@@ -2,6 +2,7 @@ var Docker = require('dockerode');
 var fs     = require('fs');
 var Q  = require('q');
 var log = require('../helpers/logger');
+var path = require('path');
 var _ = require('lodash');
 
 class DockerRemote {
@@ -255,7 +256,7 @@ class DockerRemote {
     }.bind(this));
   }
 
-  loadImage(file) {
+  loadImage(opts) {
     return new Q.Promise(function (resolve, reject, notify){
       try {
 
@@ -269,7 +270,8 @@ class DockerRemote {
           return resolve(data);
         };
 
-        this.docker.loadImage(file, handler);
+        var outputLoadPath = path.join(opts.outputPath, opts.imageId + '.tar');
+        this.docker.loadImage(outputLoadPath, handler);
 
       } catch(err){
         reject(err);

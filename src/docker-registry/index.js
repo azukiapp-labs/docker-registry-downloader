@@ -275,6 +275,26 @@ class DockerRegistry {
 
   }
 
+  tarPack(folderToPack, outputTarfile) {
+    return new Q.Promise(function (resolve, reject, notify){
+      try {
+        var write = fs.createWriteStream;
+        var pack = require('tar-pack').pack;
+        pack(folderToPack)
+          .pipe(write(outputTarfile))
+          .on('error', function (err) {
+            reject(err);
+          })
+          .on('close', function () {
+            resolve(true);
+          });
+      } catch(err){
+        reject(err);
+      }
+    }.bind(this));
+
+  }
+
   // http://docs.docker.com/reference/api/docker_remote_api_v1.16/#load-a-tarball-with-a-set-of-images-and-tags-into-docker
   prepareLoading(opts) {
     log.debug('\n\n:: docker-registry - prepareLoading - opts::');
@@ -299,6 +319,12 @@ class DockerRegistry {
           // layer.tar: A tarfile containing the filesystem changes in this layer
           var layerTarFilePath = path.join(outputLoadPath, "layer.tar");
           yield this.downloadImage(opts.endpoint, opts.token, layerTarFilePath, opts.imageId);
+
+          // create tar file
+          yield this.tarPack(outputLoadPath, path.join(outputLoadPath, '..', opts.imageId + '.tar'));
+
+          // remove folder
+          yield this.removeDirRecursive(outputLoadPath);
 
           resolve(outputLoadPath);
 

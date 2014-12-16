@@ -34,6 +34,7 @@
     "q": "^1.0.1",
     "request": "^2.50.0",
     "rimraf": "^2.2.8",
+    "tar-pack": "^2.0.0",
     "winston": "^0.8.3"
   },
   "devDependencies": {
