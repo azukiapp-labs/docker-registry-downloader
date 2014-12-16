@@ -2,6 +2,7 @@ var Q  = require('q');
 var log = require('../helpers/logger');
 var _ = require('lodash');
 var prettyBytes = require('pretty-bytes');
+var async = require('async');
 
 import DockerHub from '../docker-hub';
 import DockerRegistry from '../docker-registry';
@@ -70,25 +71,29 @@ class Syncronizer {
   getSizes(namespace, repository, hubResult, layersList) {
     return new Q.Promise(function (resolve, reject, notify){
       try {
-        Q.spawn(function* () {
+        var allChecks = [];
 
-          var totalSize = 0;
-          for (var i=0; i < layersList.length; i++) {
-              var layerID = layersList[i];
-              var size = yield this.dockerRegistry.downloadImageGetSize(hubResult.endpoint,
-                                                                        hubResult.token,
-                                                                        layerID);
-              totalSize = totalSize + size;
-          }
+        for (var i=0; i < layersList.length; i++) {
+            var layerID = layersList[i];
+            allChecks.push(this.dockerRegistry.downloadImageGetSize(hubResult.endpoint,
+                                                                    hubResult.token,
+                                                                    layerID));
+        }
 
+        var totalSize = 0;
+
+        async.parallelLimit(allChecks, 10,
+        function(err, results) {
+
+          totalSize = _.reduce(results, function(sum, num) {
+            return sum + num;
+          });
 
           log.debug('\n\n:: syncronizer - getSizes ::');
           log.debug('layers:', layersList.length);
           log.debug('total size:', prettyBytes(totalSize));
           return resolve(totalSize);
-
-        }.bind(this));
-
+        });
       } catch(err){
         reject(err);
       }

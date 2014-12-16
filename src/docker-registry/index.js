@@ -172,7 +172,7 @@ class DockerRegistry {
   }
 
   downloadImageGetSize(endpoint, token, imageId) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return function (callback){
       var options = {
         url: 'https://' + endpoint + '/v1/images/'+ imageId +'/layer',
         headers: {
@@ -181,16 +181,15 @@ class DockerRegistry {
         method: 'GET'
       };
 
-      var r = request(options)
-        .on('response', function(res){
-          log.debug('\n\n:: docker-registry - downloadImageGetSize headers ::');
-          log.debug('ID:  ', imageId);
-          var len = parseInt(res.headers['content-length'], 10);
-          log.debug('size:', prettyBytes(len));
-          r.abort();
-          resolve(len);
-        });
-    });
+      var r = request(options).on('response', function(res){
+        log.debug('\n\n:: docker-registry - downloadImageGetSize headers ::');
+        log.debug('ID:  ', imageId);
+        var len = parseInt(res.headers['content-length'], 10);
+        log.debug('size:', prettyBytes(len));
+        r.abort();
+        callback(null, len);
+      });
+    };
   }
 
   downloadImage(endpoint, token, outputPath, imageId) {

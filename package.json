@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/saitodisse/docker-registry-downloader",
   "dependencies": {
+    "async": "^0.9.0",
     "cli-color": "^0.3.2",
     "dockerode": "^2.0.4",
     "indent-string": "^1.2.0",
