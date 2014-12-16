@@ -101,9 +101,9 @@ describe('Docker Registry API', function() {
 
       var result = yield dockerRegistry.imageJson(hubResultAzktcl.endpoint,
                                                   hubResultAzktcl.token,
-                                                  'afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120');
+                                                  '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303');
 
-      chai.expect(result.id).to.eql('afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120');
+      chai.expect(result.id).to.eql('15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303');
       chai.expect(result.os).to.eql('linux');
       done();
     });

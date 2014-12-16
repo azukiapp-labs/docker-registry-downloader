@@ -176,7 +176,8 @@ class DockerRegistry {
         url: 'https://' + endpoint + '/v1/images/'+ imageId +'/layer',
         headers: {
           'Authorization': 'Token ' + token
-        }
+        },
+        method: 'GET'
       };
 
       var imageIdPartial = imageId.substr(0, 8);
@@ -184,6 +185,7 @@ class DockerRegistry {
       // HTTP GET Request -> outputFile
       request(options)
         .on('response', function(res){
+          log.debug(res.headers);
           var len = parseInt(res.headers['content-length'], 10);
           var progressMessage = '  ' + imageIdPartial + ' [:bar] :percent :elapsed ( '+ prettyBytes(len) +' )';
           var bar = new ProgressBar(progressMessage, {
@@ -192,6 +194,33 @@ class DockerRegistry {
             width: 40,
             total: len
           });
+
+
+            request.abort();
+              /****** DEBUG ******************************************************************/
+              /******************************************************************************/
+              var debugSource = res;
+              var util = require('util');
+              var scrubbed = util.inspect(debugSource, {
+                showHidden: true,
+                depth: 1,
+                colors: true
+              });
+
+              console.log(
+                '\n>>------------------------------------------------------\n' +
+                '  source: ( ' + __filename + ' )'                             +
+                '\n  ------------------------------------------------------\n' +
+                '  $ res'                                                     +
+                '\n  ------------------------------------------------------\n' +
+                   scrubbed                                                    +
+                '\n<<------------------------------------------------------\n'
+              );
+
+              /******************************************************************************/
+              /****** \DEBUG ***************************************************************/
+
+
 
           res.on('data', function (chunk) {
             bar.tick(chunk.length);
