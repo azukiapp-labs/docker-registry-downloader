@@ -127,8 +127,20 @@ describe('Docker Registry API', function() {
     });
   });
 
-  it('should get image layer download stream', function(done) {
+  it('should get download size only', function(done) {
     this.timeout(30000); // 30 seconds
+    Q.spawn(function* () {
+      var imageId_5 = '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303';
+      var result = yield dockerRegistry.downloadImageGetSize(hubResultAzktcl.endpoint,
+                                                             hubResultAzktcl.token,
+                                                             imageId_5);
+
+      chai.expect(result).to.eql(3069677);
+      done();
+    });
+  });
+
+  it('should get image layer download stream', function(done) {
     Q.spawn(function* () {
       // var imageId_7 = '511136ea3c5a64f264b78b5433614aec563103b4d4702f3ba7d4d2698e22c158';
       // var imageId_7_Size = ' 10.24 kB';
