@@ -90,8 +90,6 @@ class DockerRemote {
 
         var handler = function (err, data) {
           if (err) {
-            log.error('\n\n:: docker-remote - image ::');
-            log.error(err);
             return reject(err);
           }
 
@@ -117,8 +115,6 @@ class DockerRemote {
 
           var handler = function (err, data) {
             if (err) {
-              log.error('\n\n:: docker-remote - removeImage ::');
-              log.error(err);
               return reject(err);
             }
 
@@ -146,8 +142,6 @@ class DockerRemote {
 
         var handler = function (err, data) {
           if (err) {
-            log.error('\n\n:: docker-remote - image ::');
-            log.error(err);
             return reject(err);
           }
 
@@ -170,8 +164,6 @@ class DockerRemote {
 
         var handler = function (err, data) {
           if (err) {
-            log.error('\n\n:: docker-remote - searchImages ::');
-            log.error(err);
             return reject(err);
           }
 
@@ -256,6 +248,28 @@ class DockerRemote {
           return resolve(anscestors);
 
         }.bind(this));
+
+      } catch(err){
+        reject(err);
+      }
+    }.bind(this));
+  }
+
+  loadImage(file) {
+    return new Q.Promise(function (resolve, reject, notify){
+      try {
+
+        var handler = function (err, data) {
+          if (err) {
+            return reject(err);
+          }
+
+          log.debug('\n\n:: docker-remote - loadImage ::');
+          log.debug(data);
+          return resolve(data);
+        };
+
+        this.docker.loadImage(file, handler);
 
       } catch(err){
         reject(err);

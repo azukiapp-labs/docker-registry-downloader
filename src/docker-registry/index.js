@@ -2,6 +2,7 @@ var request = require('request');
 var Q  = require('q');
 var log = require('../helpers/logger');
 var fs = require('fs');
+var rmdir = require('rimraf');
 var path = require('path');
 var ProgressBar = require('progress');
 var prettyBytes = require('pretty-bytes');
@@ -162,8 +163,8 @@ class DockerRegistry {
           resolve(anscestors);
 
         }.bind(this));
-      } catch(ex){
-        reject(ex);
+      } catch(err){
+        reject(err);
       }
     }.bind(this));
   }
@@ -181,8 +182,9 @@ class DockerRegistry {
       var r = request(options)
         .on('response', function(res){
           log.debug('\n\n:: docker-registry - downloadImageGetSize headers ::');
-          log.debug(res.headers);
+          log.debug('ID:  ', imageId);
           var len = parseInt(res.headers['content-length'], 10);
+          log.debug('size:', prettyBytes(len));
           r.abort();
           resolve(len);
         });
@@ -192,7 +194,6 @@ class DockerRegistry {
   downloadImage(endpoint, token, outputPath, imageId) {
     return new Q.Promise(function (resolve, reject, notify){
 
-      var outputFile = path.join(outputPath, imageId.toString() + '.tar');
       var options = {
         url: 'https://' + endpoint + '/v1/images/'+ imageId +'/layer',
         headers: {
@@ -225,9 +226,60 @@ class DockerRegistry {
             resolve(imageId + ' ' + prettyBytes(len));
           });
         })
-        .pipe(fs.createWriteStream(outputFile));
+        .pipe(fs.createWriteStream(outputPath));
 
     });
+  }
+
+  removeDirRecursive(dir) {
+    return new Q.Promise(function (resolve, reject, notify){
+      rmdir(dir, function(err) {
+        if (err) {
+          reject(err);
+        }
+        else{
+          resolve(true);
+        }
+      });
+    });
+  }
+
+  // http://docs.docker.com/reference/api/docker_remote_api_v1.16/#load-a-tarball-with-a-set-of-images-and-tags-into-docker
+  prepareLoading(opts) {
+    log.debug('\n\n:: docker-registry - prepareLoading - opts::');
+    log.debug(opts);
+
+    return new Q.Promise(function (resolve, reject, notify){
+      try {
+        Q.spawn(function* () {
+          // An image tarball contains one directory per image layer (named using its long ID)
+          var outputLoadPath = path.join(opts.outputPath, opts.imageId);
+          if (fs.existsSync(outputLoadPath)) {
+            // remove folder if exists
+            yield this.removeDirRecursive(outputLoadPath);
+          }
+          yield Q.nfcall(fs.mkdir, outputLoadPath);
+
+          // VERSION: currently 1.0 - the file format version
+          var versionFilePath = path.join(outputLoadPath, "VERSION");
+          yield Q.nfcall(fs.writeFile, versionFilePath, "1.0");
+
+          // json: detailed layer information, similar to docker inspect layer_id
+          var jsonResult = yield this.imageJson(opts.endpoint, opts.token, opts.imageId);
+          var jsonFilePath = path.join(outputLoadPath, "json");
+          yield Q.nfcall(fs.writeFile, jsonFilePath, JSON.stringify(jsonResult, ' ', 3));
+
+          // layer.tar: A tarfile containing the filesystem changes in this layer
+          var layerTarFilePath = path.join(outputLoadPath, "layer.tar");
+          yield this.downloadImage(opts.endpoint, opts.token, layerTarFilePath, opts.imageId);
+
+          resolve(outputLoadPath);
+
+        }.bind(this));
+      } catch(err){
+        reject(err);
+      }
+    }.bind(this));
   }
 
 }

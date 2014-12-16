@@ -2,6 +2,7 @@ require('source-map-support').install();
 var _ = require('lodash');
 var chai  = require('chai');
 var Q  = require('q');
+var path = require('path');
 var log = require('../../src/helpers/logger');
 var logError = require('../../src/helpers/error-helper');
 Q.onerror = logError;
@@ -74,6 +75,16 @@ describe('Docker Remote API', function() {
     var dockerRemote = new DockerRemote();
     Q.spawn(function* () {
       var result = yield dockerRemote.anscestors('afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120');
+      chai.expect(result).to.not.be.undefined();
+      done();
+    });
+  });
+
+  it('should load an image', function(done) {
+    var dockerRemote = new DockerRemote();
+    Q.spawn(function* () {
+      var filePath = path.join(__dirname, '../../..', 'spec/docker-registry/output/15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303.tar');
+      var result = yield dockerRemote.loadImage(filePath);
       chai.expect(result).to.not.be.undefined();
       done();
     });

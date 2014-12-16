@@ -27,4 +27,4 @@ node_modules
 # Users Environment Variables
 .lock-wscript
 
-/spec/docker-registry/output/*.tar
+/spec/docker-registry/output/

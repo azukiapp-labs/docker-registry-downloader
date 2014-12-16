@@ -156,4 +156,30 @@ describe('Docker Registry API', function() {
     });
   });
 
+  it('should create a folder ready to load', function(done) {
+    this.timeout(15000); // 15 seconds
+    Q.spawn(function* () {
+
+      var namespace = 'azukiapp';
+      var repository = 'azktcl';
+      var tag = '0.0.2';
+      var imageId_5 = '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303';
+
+      var opts = {
+        endpoint  : hubResultAzktcl.endpoint,
+        token     : hubResultAzktcl.token,
+        namespace : namespace,
+        repository: repository,
+        tag       : tag,
+        outputPath: 'spec/docker-registry/output',
+        imageId   : imageId_5,
+      };
+
+      var result = yield dockerRegistry.prepareLoading(opts);
+
+      chai.expect(result).to.not.be.undefined();
+      done();
+    });
+  });
+
 });
