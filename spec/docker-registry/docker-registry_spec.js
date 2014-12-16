@@ -3,6 +3,7 @@ var _ = require('lodash');
 var chai  = require('chai');
 var Q  = require('q');
 var log = require('../../src/helpers/logger');
+var path = require('path');
 var logError = require('../../src/helpers/error-helper');
 Q.onerror = logError;
 
@@ -142,16 +143,21 @@ describe('Docker Registry API', function() {
 
   it('should get image layer download stream', function(done) {
     Q.spawn(function* () {
-      // var imageId_7 = '511136ea3c5a64f264b78b5433614aec563103b4d4702f3ba7d4d2698e22c158';
-      // var imageId_7_Size = ' 10.24 kB';
       var imageId_5 = '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303';
-      var imageId_5_Size = ' 3.07 MB';
+      var outputFolder = 'spec/docker-registry/output/15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303';
+      var outputFile = 'layer.tar';
+      var fullPath = path.join(outputFolder, outputFile);
+
+      // create output clean folder
+      yield dockerRegistry.createCleanFolder(outputFolder);
+
+      // download
       var result = yield dockerRegistry.downloadImage(hubResultAzktcl.endpoint,
                                                       hubResultAzktcl.token,
-                                                      'spec/docker-registry/output',
+                                                      fullPath,
                                                       imageId_5);
 
-      chai.expect(result).to.eql(imageId_5 + imageId_5_Size);
+      chai.expect(result).to.eql(fullPath);
       done();
     });
   });

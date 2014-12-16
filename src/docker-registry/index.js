@@ -223,7 +223,7 @@ class DockerRegistry {
           });
 
           res.on('end', function () {
-            resolve(imageId + ' ' + prettyBytes(len));
+            resolve(outputPath);
           });
         })
         .pipe(fs.createWriteStream(outputPath));
@@ -244,6 +244,37 @@ class DockerRegistry {
     });
   }
 
+  createCleanFolder(fullPath) {
+    return new Q.Promise(function (resolve, reject, notify){
+      try {
+        Q.spawn(function* () {
+          if (yield this.fsExists(fullPath)) {
+            // remove folder if exists
+            yield this.removeDirRecursive(fullPath);
+          }
+          yield Q.nfcall(fs.mkdir, fullPath);
+          resolve(fullPath);
+        }.bind(this));
+      } catch(err){
+        reject(err);
+      }
+    }.bind(this));
+
+  }
+
+  fsExists(fullPath) {
+    return new Q.Promise(function (resolve, reject, notify){
+      try {
+        fs.exists(fullPath, function(result) {
+          resolve(result);
+        });
+      } catch(err){
+        reject(err);
+      }
+    }.bind(this));
+
+  }
+
   // http://docs.docker.com/reference/api/docker_remote_api_v1.16/#load-a-tarball-with-a-set-of-images-and-tags-into-docker
   prepareLoading(opts) {
     log.debug('\n\n:: docker-registry - prepareLoading - opts::');
@@ -254,11 +285,7 @@ class DockerRegistry {
         Q.spawn(function* () {
           // An image tarball contains one directory per image layer (named using its long ID)
           var outputLoadPath = path.join(opts.outputPath, opts.imageId);
-          if (fs.existsSync(outputLoadPath)) {
-            // remove folder if exists
-            yield this.removeDirRecursive(outputLoadPath);
-          }
-          yield Q.nfcall(fs.mkdir, outputLoadPath);
+          yield this.createCleanFolder(outputLoadPath);
 
           // VERSION: currently 1.0 - the file format version
           var versionFilePath = path.join(outputLoadPath, "VERSION");
