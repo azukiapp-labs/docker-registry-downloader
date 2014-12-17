@@ -12,7 +12,7 @@ var fsHelper = new FsHelper();
 class DockerRegistry {
 
   tags(endpoint, token, namespace, repository) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       var options = {
         url: 'https://' + endpoint + '/v1/repositories/'+ namespace +'/' + repository + '/'  + 'tags',
         headers: {
@@ -42,7 +42,7 @@ class DockerRegistry {
   }
 
   getImageIdByTag(endpoint, token, namespace, repository, tag) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       var options = {
         url: 'https://' + endpoint + '/v1/repositories/'+ namespace +'/' + repository + '/tags/' + tag,
         headers: {
@@ -65,7 +65,7 @@ class DockerRegistry {
   }
 
   ancestry(endpoint, token, imageId) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       var options = {
         url: 'https://' + endpoint + '/v1/images/'+ imageId +'/ancestry',
         headers: {
@@ -97,14 +97,14 @@ class DockerRegistry {
       try{
         request(options, callback);
       }
-      catch(err){
+      catch(err) {
         reject(err);
       }
     });
   }
 
   imageJson(endpoint, token, imageId) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       var options = {
         url: 'https://' + endpoint + '/v1/images/'+ imageId +'/json',
         headers: {
@@ -146,7 +146,7 @@ class DockerRegistry {
   }
 
   allAnscestorByTag(endpoint, token, namespace, repository, tag) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       try {
         Q.spawn(function* () {
           log.debug('\n\n:: docker-registry - allAnscestorByTag ::');
@@ -165,14 +165,14 @@ class DockerRegistry {
           resolve(anscestors);
 
         }.bind(this));
-      } catch(err){
+      } catch(err) {
         reject(err);
       }
     }.bind(this));
   }
 
   downloadImageGetSize(endpoint, token, imageId) {
-    return function (callback){
+    return function (callback) {
       var options = {
         url: 'https://' + endpoint + '/v1/images/'+ imageId +'/layer',
         headers: {
@@ -181,7 +181,7 @@ class DockerRegistry {
         method: 'GET'
       };
 
-      var r = request(options).on('response', function(res){
+      var r = request(options).on('response', function(res) {
         log.debug('\n\n:: docker-registry - downloadImageGetSize headers ::');
         log.debug('ID:  ', imageId);
         var len = parseInt(res.headers['content-length'], 10);
@@ -193,7 +193,7 @@ class DockerRegistry {
   }
 
   downloadImage(endpoint, token, outputPath, imageId) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
 
       var options = {
         url: 'https://' + endpoint + '/v1/images/'+ imageId +'/layer',
@@ -207,7 +207,7 @@ class DockerRegistry {
 
       // HTTP GET Request -> outputFile
       request(options)
-        .on('response', function(res){
+        .on('response', function(res) {
           log.debug('\n\n:: docker-registry - downloadImage headers ::');
           log.debug(res.headers);
           var len = parseInt(res.headers['content-length'], 10);
@@ -237,7 +237,7 @@ class DockerRegistry {
     log.debug('\n\n:: docker-registry - prepareLoading - opts::');
     log.debug(opts);
 
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       try {
         Q.spawn(function* () {
           // An image tarball contains one directory per image layer (named using its long ID)
@@ -266,7 +266,7 @@ class DockerRegistry {
           resolve(outputLoadPath);
 
         }.bind(this));
-      } catch(err){
+      } catch(err) {
         reject(err);
       }
     }.bind(this));

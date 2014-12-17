@@ -5,7 +5,7 @@ var rmdir = require('rimraf');
 class FsHelper {
 
   removeDirRecursive(dir) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       rmdir(dir, function(err) {
         if (err) {
           reject(err);
@@ -18,7 +18,7 @@ class FsHelper {
   }
 
   createCleanFolder(fullPath) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       try {
         Q.spawn(function* () {
           if (yield this.fsExists(fullPath)) {
@@ -28,7 +28,7 @@ class FsHelper {
           yield Q.nfcall(fs.mkdir, fullPath);
           resolve(fullPath);
         }.bind(this));
-      } catch(err){
+      } catch(err) {
         reject(err);
       }
     }.bind(this));
@@ -36,12 +36,12 @@ class FsHelper {
   }
 
   fsExists(fullPath) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       try {
         fs.exists(fullPath, function(result) {
           resolve(result);
         });
-      } catch(err){
+      } catch(err) {
         reject(err);
       }
     }.bind(this));
@@ -49,7 +49,7 @@ class FsHelper {
   }
 
   tarPack(folderToPack, outputTarfile) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       try {
         var write = fs.createWriteStream;
         var pack = require('tar-pack').pack;
@@ -61,7 +61,7 @@ class FsHelper {
           .on('close', function () {
             resolve(true);
           });
-      } catch(err){
+      } catch(err) {
         reject(err);
       }
     }.bind(this));

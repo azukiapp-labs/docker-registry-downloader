@@ -7,7 +7,7 @@ var log = require('../helpers/logger');
 class DockerHub {
 
   auth(namespace, user, password) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       var url = DOCKER_HUB_URL + '/v1/repositories/'+ namespace +'/auth';
       request.get(url).auth(user, password, false, function (error, response, body) {
         if (!error && response.statusCode == 200) {
@@ -23,7 +23,7 @@ class DockerHub {
   }
 
   images(namespace, repository) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       var options = {
         url: DOCKER_HUB_URL + '/v1/repositories/'+ namespace +'/'+ repository +'/images',
         headers: {
@@ -55,7 +55,7 @@ class DockerHub {
   }
 
   search(query) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       var options = {
         url: DOCKER_HUB_URL + '/v1/search',
         qs: {

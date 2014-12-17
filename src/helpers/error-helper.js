@@ -9,7 +9,7 @@ module.exports = function(title, err) {
     var error = [];
     error.push('');
 
-    if(_.isString(title)){
+    if(_.isString(title)) {
         line = '  ' + repeating('-', title.length - 2);
         error.push(line);
         error.push(' '  + clc.red.bold(title));
@@ -18,7 +18,7 @@ module.exports = function(title, err) {
         err = title;
     }
 
-    if(!err.message){
+    if(!err.message) {
       return;
     }
 

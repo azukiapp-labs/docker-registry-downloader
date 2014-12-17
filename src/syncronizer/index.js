@@ -17,7 +17,7 @@ class Syncronizer {
   }
 
   compare(namespace, repository, tag) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       try {
         Q.spawn(function* () {
           // get from docker registry
@@ -62,14 +62,14 @@ class Syncronizer {
 
         }.bind(this));
 
-      } catch(err){
+      } catch(err) {
         reject(err);
       }
     }.bind(this));
   }
 
   getSizes(namespace, repository, hubResult, layersList) {
-    return new Q.Promise(function (resolve, reject, notify){
+    return new Q.Promise(function (resolve, reject, notify) {
       try {
         var allChecks = [];
 
@@ -80,12 +80,10 @@ class Syncronizer {
                                                                     layerID));
         }
 
-        var totalSize = 0;
-
         async.parallelLimit(allChecks, 10,
         function(err, results) {
 
-          totalSize = _.reduce(results, function(sum, num) {
+          var totalSize = _.reduce(results, function(sum, num) {
             return sum + num;
           });
 
@@ -94,14 +92,20 @@ class Syncronizer {
           log.debug('total size:', prettyBytes(totalSize));
           return resolve(totalSize);
         });
-      } catch(err){
+      } catch(err) {
         reject(err);
       }
     }.bind(this));
   }
 
   downloadAndLoad(opts) {
-    return new Q.Promise(function (resolve, reject, notify){
+    // opts: {
+    //   endpoint   : docker registry endpoint from dockerhub
+    //   token      : repository token         from dockerhub
+    //   outputPath : local folder to save
+    //   imageId    : ImageID to download
+    // }
+    return new Q.Promise(function (resolve, reject, notify) {
       try {
         Q.spawn(function* () {
 
@@ -111,11 +115,43 @@ class Syncronizer {
 
         }.bind(this));
 
-      } catch(err){
+      } catch(err) {
         reject(err);
       }
     }.bind(this));
   }
+
+  // downloadAndLoadList(opts) {
+  //   // opts: {
+  //   //   endpoint    : docker registry endpoint from dockerhub
+  //   //   token       : repository token         from dockerhub
+  //   //   outputPath  : local folder to save
+  //   //   imageIdList : all IDs to download
+  //   // }
+  //   return new Q.Promise(function (resolve, reject, notify) {
+  //     try {
+  //       var allDownloads = [];
+
+  //       for (var i=0; i < opts.imageIdList.length; i++) {
+  //         var layerID = opts.imageIdList[i];
+  //         var fullpathOutput = path.join(opts.outputPath, layerID + ''
+  //         allDownloads.push(this.dockerRegistry.downloadImage(opts.endpoint,
+  //                                                             opts.token,
+  //                                                             opts.outputPath,
+  //                                                             layerID));
+  //       }
+
+  //       async.parallelLimit(allDownloads, 10,
+  //       function(err, results) {
+  //         log.debug('\n\n:: syncronizer - downloadAndLoadList ::');
+  //         log.debug('outputs:', results);
+  //         return resolve(results);
+  //       });
+  //     } catch(err) {
+  //       reject(err);
+  //     }
+  //   }.bind(this));
+  // }
 
 
 }

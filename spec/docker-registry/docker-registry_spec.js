@@ -21,7 +21,7 @@ describe('Docker Registry API', function() {
     token:    null
   };
 
-  before(function(done){
+  before(function(done) {
     this.timeout(10000);
     // 1 - get endpoint and token
     Q.spawn(function* () {
@@ -131,12 +131,13 @@ describe('Docker Registry API', function() {
   });
 
   it('should get download size only', function(done) {
-    this.timeout(30000); // 30 seconds
+    this.timeout(3000); // 30 seconds
     Q.spawn(function* () {
       var imageId_5 = '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303';
-      var result = yield dockerRegistry.downloadImageGetSize(hubResultAzktcl.endpoint,
-                                                             hubResultAzktcl.token,
-                                                             imageId_5);
+      var result = yield Q.nfcall(dockerRegistry.downloadImageGetSize(
+                                    hubResultAzktcl.endpoint,
+                                    hubResultAzktcl.token,
+                                    imageId_5));
 
       chai.expect(result).to.eql(3069677);
       done();
@@ -167,9 +168,6 @@ describe('Docker Registry API', function() {
   it('should create a folder ready to load', function(done) {
     this.timeout(15000); // 15 seconds
     Q.spawn(function* () {
-
-      console.log('\n>>---------\n __dirname:', __dirname, '\n>>---------\n');
-
       var imageId_5 = '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303';
       var opts = {
         endpoint  : hubResultAzktcl.endpoint,
