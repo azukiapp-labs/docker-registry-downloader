@@ -39,11 +39,13 @@ class DockerHub {
           // X-Docker-Endpoints → registry-1.docker.io
           // X-Docker-Token → signature=0aeea6bc91a4d1d0ff7892c9c101df17ce9c8a60,repository="azukiapp/azktcl",access=read
           log.debug('\n\n:: docker-hub - images ::');
-          log.debug(response.headers);
           var result = {
-            endpoint: response.headers['x-docker-endpoints'],
-            token:    response.headers['x-docker-token'],
+            namespace  : namespace,
+            repository : repository,
+            endpoint   : response.headers['x-docker-endpoints'],
+            token      : response.headers['x-docker-token'],
           };
+          log.debug(result);
           resolve(result);
         }
         else {

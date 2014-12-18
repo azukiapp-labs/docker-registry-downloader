@@ -2,7 +2,6 @@ require('source-map-support').install();
 // var _ = require('lodash');
 var chai  = require('chai');
 var Q  = require('q');
-var log = require('../../src/helpers/logger');
 var logError = require('../../src/helpers/error-helper');
 Q.onerror = logError;
 
@@ -35,7 +34,11 @@ describe('Syncronizer', function() {
       var repository = 'ruby';
       var tag = '2.1';
 
-      var result = yield syncronizer.compare(namespace, repository, tag);
+      // get endpoint and token from docker hub
+      var dockerHub = new DockerHub();
+      var hubResult = yield dockerHub.images(namespace, repository);
+
+      var result = yield syncronizer.compare(hubResult, tag);
       chai.expect(result).to.not.be.undefined();
       done();
     });
@@ -52,7 +55,7 @@ describe('Syncronizer', function() {
       var dockerHub = new DockerHub();
       var hubResult = yield dockerHub.images(namespace, repository);
 
-      var result = yield syncronizer.getSizes(namespace, repository, hubResult, diffRuby21Layers);
+      var result = yield syncronizer.getSizes(hubResult, diffRuby21Layers);
       chai.expect(result).to.not.be.undefined();
       done();
     });
@@ -78,8 +81,7 @@ describe('Syncronizer', function() {
       ];
 
       var result = yield syncronizer.downloadList(
-        hubResult.endpoint,
-        hubResult.token,
+        hubResult,
         __dirname + '/../../../spec/docker-registry/output',
         imageIdList
       );
@@ -109,8 +111,7 @@ describe('Syncronizer', function() {
       ];
 
       var result = yield syncronizer.loadList(
-        hubResult.endpoint,
-        hubResult.token,
+        hubResult,
         __dirname + '/../../../spec/docker-registry/output',
         imageIdList
       );
@@ -128,7 +129,7 @@ describe('Syncronizer', function() {
       var namespace  = 'azukiapp';
       var repository = 'azktcl';
       var hubResult  = yield dockerHub.images(namespace, repository);
-      var result = yield syncronizer.setTags(hubResult.endpoint, hubResult.token, namespace, repository);
+      var result = yield syncronizer.setTags(hubResult);
       chai.expect(result).to.not.be.undefined();
       done();
     });
@@ -140,8 +141,13 @@ describe('Syncronizer', function() {
 
       var namespace  = 'azukiapp';
       var repository = 'azktcl';
+      var dockerHub  = new DockerHub();
+      var hubResult  = yield dockerHub.images(namespace, repository);
+
       var tag = '0.0.2';
-      var result = yield syncronizer.sync(namespace, repository, tag);
+      var outputPath = __dirname + '/../../../spec/docker-registry/output';
+      var result = yield syncronizer.sync(hubResult, tag, outputPath);
+
       chai.expect(result).to.not.be.undefined();
       done();
     });

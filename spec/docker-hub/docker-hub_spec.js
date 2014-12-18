@@ -6,7 +6,7 @@ var logError = require('../../src/helpers/error-helper');
 import DockerHub from '../../src/docker-hub';
 Q.onerror = logError;
 
-describe('Docker HUB API', function() {
+describe('Docker Hub API', function() {
 
   var dockerHub = new DockerHub();
 
@@ -35,6 +35,17 @@ describe('Docker HUB API', function() {
       var result = yield dockerHub.search('azktcl');
       chai.expect(result.results).to.have.length.above(0);
       chai.expect(result.results[0].name).to.equal('azukiapp/azktcl');
+      done();
+    });
+  });
+
+  it('should get endpoind and token', function(done) {
+    Q.spawn(function* () {
+      var result = yield dockerHub.images('azukiapp', 'azktcl');
+      chai.expect(result.namespace).to.equal('azukiapp');
+      chai.expect(result.repository).to.equal('azktcl');
+      chai.expect(result.endpoint).to.not.be.undefined();
+      chai.expect(result.token).to.not.be.undefined();
       done();
     });
   });

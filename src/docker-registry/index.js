@@ -11,12 +11,12 @@ var fsHelper = new FsHelper();
 
 class DockerRegistry {
 
-  tags(endpoint, token, namespace, repository) {
+  tags(hubResult) {
     return new Q.Promise(function (resolve, reject, notify) {
       var options = {
-        url: 'https://' + endpoint + '/v1/repositories/'+ namespace +'/' + repository + '/'  + 'tags',
+        url: 'https://' + hubResult.endpoint + '/v1/repositories/'+ hubResult.namespace +'/' + hubResult.repository + '/'  + 'tags',
         headers: {
-          'Authorization': 'Token ' + token
+          'Authorization': 'Token ' + hubResult.token
         }
       };
       function callback(error, response, body) {
@@ -41,12 +41,12 @@ class DockerRegistry {
     });
   }
 
-  getImageIdByTag(endpoint, token, namespace, repository, tag) {
+  getImageIdByTag(hubResult, tag) {
     return new Q.Promise(function (resolve, reject, notify) {
       var options = {
-        url: 'https://' + endpoint + '/v1/repositories/'+ namespace +'/' + repository + '/tags/' + tag,
+        url: 'https://' + hubResult.endpoint + '/v1/repositories/'+ hubResult.namespace +'/' + hubResult.repository + '/tags/' + tag,
         headers: {
-          'Authorization': 'Token ' + token
+          'Authorization': 'Token ' + hubResult.token
         }
       };
       function callback(error, response, body) {
@@ -64,12 +64,12 @@ class DockerRegistry {
     });
   }
 
-  ancestry(endpoint, token, imageId) {
+  ancestry(hubResult, imageId) {
     return new Q.Promise(function (resolve, reject, notify) {
       var options = {
-        url: 'https://' + endpoint + '/v1/images/'+ imageId +'/ancestry',
+        url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/ancestry',
         headers: {
-          'Authorization': 'Token ' + token
+          'Authorization': 'Token ' + hubResult.token
         }
       };
       function callback(error, response, body) {
@@ -103,12 +103,12 @@ class DockerRegistry {
     });
   }
 
-  imageJson(endpoint, token, imageId) {
+  imageJson(hubResult, imageId) {
     return new Q.Promise(function (resolve, reject, notify) {
       var options = {
-        url: 'https://' + endpoint + '/v1/images/'+ imageId +'/json',
+        url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/json',
         headers: {
-          'Authorization': 'Token ' + token
+          'Authorization': 'Token ' + hubResult.token
         }
       };
       function callback(error, response, body) {
@@ -145,22 +145,22 @@ class DockerRegistry {
     });
   }
 
-  allAnscestorByTag(endpoint, token, namespace, repository, tag) {
+  allAnscestorByTag(hubResult, tag) {
     return new Q.Promise(function (resolve, reject, notify) {
       try {
         Q.spawn(function* () {
           log.debug('\n\n:: docker-registry - allAnscestorByTag ::');
-          log.debug('endpoint:', endpoint);
-          log.debug('token:', token);
-          log.debug('namespace:', namespace);
-          log.debug('repository:', repository);
+          log.debug('endpoint:', hubResult.endpoint);
+          log.debug('token:', hubResult.token);
+          log.debug('namespace:', hubResult.namespace);
+          log.debug('repository:', hubResult.repository);
           log.debug('tag:', tag);
           log.debug('>>------------');
 
           // get imageId from tag
-          var imageId = yield this.getImageIdByTag(endpoint, token, namespace, repository, tag);
+          var imageId = yield this.getImageIdByTag(hubResult, tag);
           //get all anscestors
-          var anscestors = yield this.ancestry(endpoint, token, imageId);
+          var anscestors = yield this.ancestry(hubResult, imageId);
 
           resolve(anscestors);
 
@@ -171,12 +171,12 @@ class DockerRegistry {
     }.bind(this));
   }
 
-  downloadImageGetSize(endpoint, token, imageId) {
+  downloadImageGetSize(hubResult, imageId) {
     return function (callback) {
       var options = {
-        url: 'https://' + endpoint + '/v1/images/'+ imageId +'/layer',
+        url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/layer',
         headers: {
-          'Authorization': 'Token ' + token
+          'Authorization': 'Token ' + hubResult.token
         },
         method: 'GET'
       };
@@ -193,13 +193,13 @@ class DockerRegistry {
     };
   }
 
-  downloadImage(endpoint, token, outputPath, imageId) {
+  downloadImage(hubResult, outputPath, imageId) {
     return new Q.Promise(function (resolve, reject, notify) {
 
       var options = {
-        url: 'https://' + endpoint + '/v1/images/'+ imageId +'/layer',
+        url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/layer',
         headers: {
-          'Authorization': 'Token ' + token
+          'Authorization': 'Token ' + hubResult.token
         },
         method: 'GET'
       };
@@ -234,7 +234,7 @@ class DockerRegistry {
   }
 
   // http://docs.docker.com/reference/api/docker_remote_api_v1.16/#load-a-tarball-with-a-set-of-images-and-tags-into-docker
-  prepareLoading(endpoint, token, outputPath, imageId) {
+  prepareLoading(hubResult, outputPath, imageId) {
     return new Q.Promise(function (resolve, reject, notify) {
       try {
         Q.spawn(function* () {
@@ -247,13 +247,13 @@ class DockerRegistry {
           yield Q.nfcall(fs.writeFile, versionFilePath, "1.0");
 
           // json: detailed layer information, similar to docker inspect layer_id
-          var jsonResult = yield this.imageJson(endpoint, token, imageId);
+          var jsonResult = yield this.imageJson(hubResult, imageId);
           var jsonFilePath = path.join(outputLoadPath, "json");
           yield Q.nfcall(fs.writeFile, jsonFilePath, JSON.stringify(jsonResult, ' ', 3));
 
           // layer.tar: A tarfile containing the filesystem changes in this layer
           var layerTarFilePath = path.join(outputLoadPath, "layer.tar");
-          yield this.downloadImage(endpoint, token, layerTarFilePath, imageId);
+          yield this.downloadImage(hubResult, layerTarFilePath, imageId);
 
           // create tar file
           yield fsHelper.tarPack(outputLoadPath, path.join(outputLoadPath, '..', imageId + '.tar'));
