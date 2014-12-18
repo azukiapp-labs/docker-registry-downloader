@@ -91,6 +91,10 @@ class DockerRemote {
 
         var handler = function (err, data) {
           if (err) {
+            if (err.statusCode === 404) {
+              return resolve(null); // does not exist, is null them
+            }
+
             return reject(err);
           }
 
@@ -279,6 +283,35 @@ class DockerRemote {
     }.bind(this));
   }
 
+  setImageTag(namespace, repository, imageId, tagName) {
+    return new Q.Promise(function (resolve, reject, notify) {
+      try {
+        Q.spawn(function* () {
+          var image = yield this.docker.getImage(imageId);
+
+          // check if the image exists
+          var imageInspectResult = yield this.inspectImage(image);
+          if (imageInspectResult === null) {
+            resolve(null);
+          }
+
+          // tag local image
+          image.tag({
+            repo : namespace + '/' + repository,
+            tag  : tagName
+          }, function(err, data) {
+            if(err) {
+              return reject(err);
+            }
+            resolve(data);
+          });
+
+        }.bind(this));
+      } catch(err) {
+        reject(err);
+      }
+    }.bind(this));
+  }
 
 }
 

@@ -220,6 +220,37 @@ class Syncronizer {
     }.bind(this));
   }
 
+  setTags(endpoint, token, namespace, repository) {
+    return new Q.Promise(function (resolve, reject, notify) {
+      try {
+        Q.spawn(function* () {
+
+          var tags = yield this.dockerRegistry.tags(endpoint, token, namespace, repository);
+          var results = [];
+          for(var name in tags)
+          {
+              if (tags.hasOwnProperty(name))
+              {
+                var tagName = name;
+                var imageId = tags[name];
+
+                log.debug('\n\n:: syncronizer - setTag - search image ::');
+                log.debug(tagName, imageId);
+                var result = yield this.dockerRemote.setImageTag(namespace, repository, imageId, tagName);
+                results.push(result);
+              }
+          }
+
+          resolve(results);
+
+        }.bind(this));
+      } catch(err) {
+        reject(err);
+      }
+    }.bind(this));
+
+  }
+
 
 }
 
