@@ -135,7 +135,7 @@ describe('Syncronizer', function() {
     });
   });
 
-  it('should sync: download, load and tag by repository and tag', function(done) {
+  it('should sync azukiapp/azktcl:0.0.2', function(done) {
     this.timeout(30000);
     Q.spawn(function* () {
 
