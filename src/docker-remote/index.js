@@ -306,6 +306,8 @@ class DockerRemote {
           // check if the image exists
           var imageInspectResult = yield this.inspectImage(image);
           if (imageInspectResult === null) {
+            log.debug('\n\n:: docker-remote - setImageTag ::');
+            log.debug('no image found with ' + imageId);
             resolve(null);
           }
 

@@ -136,7 +136,7 @@ describe('Syncronizer', function() {
   });
 
   it('should sync: download, load and tag by repository and tag', function(done) {
-    this.timeout(18000);
+    this.timeout(30000);
     Q.spawn(function* () {
 
       var namespace  = 'azukiapp';

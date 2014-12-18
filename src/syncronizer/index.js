@@ -74,11 +74,13 @@ class Syncronizer {
 
           var totalSize = _.reduce(results, function(sum, num) {
             return sum + num;
-          });
+          }, 0);
 
           log.debug('\n\n:: syncronizer - getSizes ::');
           log.debug('layers:', layersList.length);
-          log.debug('total size:', prettyBytes(totalSize));
+
+          log.info('  total size:', prettyBytes(totalSize));
+
           return resolve(totalSize);
         });
       } catch(err) {
@@ -185,7 +187,7 @@ class Syncronizer {
 
                 log.debug('\n\n:: syncronizer - setTag - search image ::');
                 log.debug(tagName, imageId);
-                var result = yield this.dockerRemote.setImageTag(hubResult, imageId, tagName);
+                var result = yield this.dockerRemote.setImageTag(hubResult.namespace, hubResult.repository, imageId, tagName);
                 results.push(result);
               }
           }
@@ -205,14 +207,29 @@ class Syncronizer {
       try {
         Q.spawn(function* () {
 
-          // compare docker registry with local images
+          var imageFullName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
+          log.info('syncing', imageFullName);
+          log.info('  comparing docker registry with local images...');
           var layersToDownload = yield this.compare(hubResult, tag);
 
-          // total size to download
+          log.info('  getting total size...');
           var getTotalSize = yield this.getSizes(hubResult, layersToDownload);
 
-          // download all layers
-          var getTotalSize = yield this.downloadList(hubResult, outputPath, layersToDownload);
+          if (getTotalSize > 0) {
+            log.info('  downloading all layers...');
+            yield this.downloadList(hubResult, outputPath, layersToDownload);
+
+            log.info('  loading all layers...');
+            yield this.loadList(hubResult, outputPath, layersToDownload);
+          }
+          else{
+            log.info('  nothing to download');
+          }
+
+          log.info('  setting tags...');
+          yield this.setTags(hubResult);
+
+          log.info('finished loading', imageFullName);
 
           resolve(true);
 
