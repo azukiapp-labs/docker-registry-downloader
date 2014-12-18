@@ -63,7 +63,7 @@ describe('Docker Remote API', function() {
     var dockerRemote = new DockerRemote();
     Q.spawn(function* () {
       var result = yield dockerRemote.getParent('afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120');
-      chai.expect(result).to.not.be.undefined(result.Parent);
+      chai.expect(result).to.not.be.undefined(result);
       done();
     });
   });
@@ -72,7 +72,7 @@ describe('Docker Remote API', function() {
     var dockerRemote = new DockerRemote();
     Q.spawn(function* () {
       var result = yield dockerRemote.anscestors('afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120');
-      chai.expect(result).to.not.be.undefined();
+      chai.expect(result).to.not.be.undefined(result);
       done();
     });
   });

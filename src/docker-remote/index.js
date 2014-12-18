@@ -218,6 +218,13 @@ class DockerRemote {
 
           var currentImage = yield this.getImage(imageId);
           var imageInspect = yield this.inspectImage(currentImage);
+
+          if (imageInspect === null) {
+            log.debug('\n\n:: docker-remote - getParent ::');
+            log.debug('image not found: ' + imageId);
+            return resolve(null);
+          }
+
           log.debug('\n\n:: docker-remote - getParent ::');
           log.debug('image  ID: ' + imageId);
           log.debug('parent ID:   ' + imageInspect.Parent);
@@ -243,6 +250,13 @@ class DockerRemote {
 
           while (currentImageId) {
             var imageResult = yield this.getParent(currentImageId);
+
+            if (imageResult === null) {
+              log.debug('\n\n:: docker-remote - anscestors ::');
+              log.debug('image not found: ' + currentImageId);
+              return resolve(null);
+            }
+
             anscestors.push(imageResult);
             currentImageId = imageResult.imageInspect.Parent;
           }
@@ -260,21 +274,21 @@ class DockerRemote {
     }.bind(this));
   }
 
-  loadImage(opts) {
+  loadImage(outputPath, imageId) {
     return new Q.Promise(function (resolve, reject, notify) {
       try {
 
+        var outputLoadPath = path.join(outputPath, imageId + '.tar');
         var handler = function (err, data) {
           if (err) {
             return reject(err);
           }
 
           log.debug('\n\n:: docker-remote - loadImage ::');
-          log.debug(data);
-          return resolve(data);
+          log.debug(outputLoadPath);
+          return resolve(outputLoadPath);
         };
 
-        var outputLoadPath = path.join(opts.outputPath, opts.imageId + '.tar');
         this.docker.loadImage(outputLoadPath, handler);
 
       } catch(err) {
@@ -312,6 +326,7 @@ class DockerRemote {
       }
     }.bind(this));
   }
+
 
 }
 

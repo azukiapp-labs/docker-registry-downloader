@@ -168,15 +168,12 @@ describe('Docker Registry API', function() {
   it('should create a folder ready to load', function(done) {
     this.timeout(15000); // 15 seconds
     Q.spawn(function* () {
-      var imageId_5 = '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303';
-      var opts = {
-        endpoint  : hubResultAzktcl.endpoint,
-        token     : hubResultAzktcl.token,
-        outputPath: __dirname + '/../../../spec/docker-registry/output',
-        imageId   : imageId_5,
-      };
 
-      var result = yield dockerRegistry.prepareLoading(opts);
+      var result = yield dockerRegistry.prepareLoading(
+        hubResultAzktcl.endpoint,
+        hubResultAzktcl.token,
+        __dirname + '/../../../spec/docker-registry/output',
+        '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303');
 
       chai.expect(result).to.not.be.undefined();
       done();

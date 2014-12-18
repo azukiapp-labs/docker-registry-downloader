@@ -20,10 +20,11 @@ class Syncronizer {
     return new Q.Promise(function (resolve, reject, notify) {
       try {
         Q.spawn(function* () {
-          // get from docker registry
+          // get endpoint and token from docker hub
           var hubResult = yield this.dockerHub.images(namespace, repository);
 
 
+          // get endpoint and token from docker hub
           var imageId = yield this.dockerRegistry.getImageIdByTag(hubResult.endpoint,
                                                                   hubResult.token,
                                                                   namespace,
@@ -34,9 +35,6 @@ class Syncronizer {
                                                                      hubResult.token,
                                                                      imageId);
 
-          // remove an image from local docker
-          // yield this.dockerRemote.removeImage('aeae21d102569e871da86fd51ab8fd34ca12031a779ba6d02eea55a7f5123c10');
-
           // get from local docker
           var fullTagName = namespace + '/' + repository + ':' + tag;
           if (namespace === 'library') {
@@ -45,7 +43,10 @@ class Syncronizer {
           var imagesFound = yield this.dockerRemote.searchImagesByTag(fullTagName);
 
           if (!imagesFound || imagesFound.length === 0) {
-            throw new Error('no local images found for ' + fullTagName);
+            //throw new Error('no local images found for ' + fullTagName);
+            log.debug('\n\n:: syncronizer - compare - no local image for '+ fullTagName +' ::');
+            log.debug(registryAncestors);
+            return resolve(registryAncestors);
           }
 
           var localAncestors = yield this.dockerRemote.anscestors(imagesFound[0].Id);
@@ -98,74 +99,36 @@ class Syncronizer {
     }.bind(this));
   }
 
-  downloadAndLoad(opts) {
-    // opts: {
-    //   endpoint   : docker registry endpoint from dockerhub
-    //   token      : repository token         from dockerhub
-    //   outputPath : local folder to save
-    //   imageId    : ImageID to download
-    // }
-    return new Q.Promise(function (resolve, reject, notify) {
-      try {
-        Q.spawn(function* () {
-
-          yield this.dockerRegistry.prepareLoading(opts);
-          var result = yield this.dockerRemote.loadImage(opts);
-          resolve(result);
-
-        }.bind(this));
-
-      } catch(err) {
-        reject(err);
-      }
-    }.bind(this));
-  }
-
-  downloadCallback(opts) {
-    // opts: {
-    //   endpoint   : docker registry endpoint from dockerhub
-    //   token      : repository token         from dockerhub
-    //   outputPath : local folder to save
-    //   imageId    : ImageID to download
-    // }
+  downloadCallback(endpoint, token, outputPath, imageId) {
     return function (callback) {
       Q.spawn(function* () {
-        callback(null, yield this.dockerRegistry.prepareLoading(opts));
+        callback(null, yield this.dockerRegistry.prepareLoading(
+          endpoint, token, outputPath, imageId));
       }.bind(this));
     }.bind(this);
   }
 
-  loadCallback(opts) {
-    // opts: {
-    //   endpoint   : docker registry endpoint from dockerhub
-    //   token      : repository token         from dockerhub
-    //   outputPath : local folder to save
-    //   imageId    : ImageID to download
-    // }
+  loadCallback(endpoint, token, outputPath, imageId) {
     return function (callback) {
       Q.spawn(function* () {
-        var result = yield this.dockerRemote.loadImage(opts);
+        var result = yield this.dockerRemote.loadImage(outputPath, imageId);
         callback(null, result);
       }.bind(this));
     }.bind(this);
   }
 
-  downloadList(opts) {
-    // opts: {
-    //   endpoint    : docker registry endpoint from dockerhub
-    //   token       : repository token         from dockerhub
-    //   outputPath  : local folder to save
-    //   imageIdList : all IDs to download
-    // }
+  // endpoint    : docker registry endpoint from dockerhub
+  // token       : repository token         from dockerhub
+  // outputPath  : local folder to save
+  // imageIdList : all IDs to download
+  downloadList(endpoint, token, outputPath, imageIdList) {
     return new Q.Promise(function (resolve, reject, notify) {
       try {
         var allDownloads = [];
 
-        for (var i=opts.imageIdList.length-1; i >= 0 ; i--) {
-          var layerID = opts.imageIdList[i];
-          var optsItem = _.clone(opts);
-          optsItem.imageId = layerID;
-          allDownloads.push(this.downloadCallback(optsItem));
+        for (var i=imageIdList.length-1; i >= 0 ; i--) {
+          var layerID = imageIdList[i];
+          allDownloads.push(this.downloadCallback(endpoint, token, outputPath, layerID));
         }
 
         // download
@@ -185,7 +148,7 @@ class Syncronizer {
     }.bind(this));
   }
 
-  loadList(opts) {
+  loadList(endpoint, token, outputPath, imageIdList) {
     // opts: {
     //   endpoint    : docker registry endpoint from dockerhub
     //   token       : repository token         from dockerhub
@@ -196,11 +159,9 @@ class Syncronizer {
       try {
         var allLoads = [];
 
-        for (var i=opts.imageIdList.length-1; i >= 0 ; i--) {
-          var layerID = opts.imageIdList[i];
-          var optsItem = _.clone(opts);
-          optsItem.imageId = layerID;
-          allLoads.push(this.loadCallback(optsItem));
+        for (var i=imageIdList.length-1; i >= 0 ; i--) {
+          var layerID = imageIdList[i];
+          allLoads.push(this.loadCallback(endpoint, token, outputPath, layerID));
         }
 
         // load
@@ -242,6 +203,35 @@ class Syncronizer {
           }
 
           resolve(results);
+
+        }.bind(this));
+      } catch(err) {
+        reject(err);
+      }
+    }.bind(this));
+
+  }
+
+  sync(namespace, repository, tag) {
+    return new Q.Promise(function (resolve, reject, notify) {
+      try {
+        Q.spawn(function* () {
+
+          // compare docker registry with local images
+          var layersToDownload = yield this.compare(namespace, repository, tag);
+
+
+          /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.      DEBUG */
+            //           ------------------------------------------
+            var target = layersToDownload;
+            //           ------------------------------------------
+            var depth  = 2; var inspectResult=require("util").inspect(target,{showHidden:!0,colors:!0,depth:depth});console.log("\n>>------------------------------------------------------\n  ##  layersToDownload\n  ------------------------------------------------------\n  source: ( "+__filename+" )"+"\n  ------------------------------------------------------\n"+inspectResult+"\n<<------------------------------------------------------\n");
+          /* -.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-. /END-DEBUG */
+
+
+
+
+          resolve(true);
 
         }.bind(this));
       } catch(err) {

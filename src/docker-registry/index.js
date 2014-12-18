@@ -234,15 +234,12 @@ class DockerRegistry {
   }
 
   // http://docs.docker.com/reference/api/docker_remote_api_v1.16/#load-a-tarball-with-a-set-of-images-and-tags-into-docker
-  prepareLoading(opts) {
-    log.debug('\n\n:: docker-registry - prepareLoading - opts::');
-    log.debug(opts);
-
+  prepareLoading(endpoint, token, outputPath, imageId) {
     return new Q.Promise(function (resolve, reject, notify) {
       try {
         Q.spawn(function* () {
           // An image tarball contains one directory per image layer (named using its long ID)
-          var outputLoadPath = path.join(opts.outputPath, opts.imageId);
+          var outputLoadPath = path.join(outputPath, imageId);
           yield fsHelper.createCleanFolder(outputLoadPath);
 
           // VERSION: currently 1.0 - the file format version
@@ -250,16 +247,16 @@ class DockerRegistry {
           yield Q.nfcall(fs.writeFile, versionFilePath, "1.0");
 
           // json: detailed layer information, similar to docker inspect layer_id
-          var jsonResult = yield this.imageJson(opts.endpoint, opts.token, opts.imageId);
+          var jsonResult = yield this.imageJson(endpoint, token, imageId);
           var jsonFilePath = path.join(outputLoadPath, "json");
           yield Q.nfcall(fs.writeFile, jsonFilePath, JSON.stringify(jsonResult, ' ', 3));
 
           // layer.tar: A tarfile containing the filesystem changes in this layer
           var layerTarFilePath = path.join(outputLoadPath, "layer.tar");
-          yield this.downloadImage(opts.endpoint, opts.token, layerTarFilePath, opts.imageId);
+          yield this.downloadImage(endpoint, token, layerTarFilePath, imageId);
 
           // create tar file
-          yield fsHelper.tarPack(outputLoadPath, path.join(outputLoadPath, '..', opts.imageId + '.tar'));
+          yield fsHelper.tarPack(outputLoadPath, path.join(outputLoadPath, '..', imageId + '.tar'));
 
           // remove folder
           yield fsHelper.removeDirRecursive(outputLoadPath);
