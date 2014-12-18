@@ -212,7 +212,7 @@ class DockerRegistry {
           log.debug('\n\n:: docker-registry - downloadImage headers ::');
           log.debug(res.headers);
           var len = parseInt(res.headers['content-length'], 10);
-          var progressMessage = '  ' + imageIdPartial + ' [:bar] :percent :elapsed ( '+ prettyBytes(len) +' )';
+          var progressMessage = '          ' + imageIdPartial + ' [:bar] :percent :elapsed ( '+ prettyBytes(len) +' )';
           var bar = new ProgressBar(progressMessage, {
             complete: '=',
             incomplete: ' ',

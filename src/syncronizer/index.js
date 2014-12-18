@@ -79,7 +79,7 @@ class Syncronizer {
           log.debug('\n\n:: syncronizer - getSizes ::');
           log.debug('layers:', layersList.length);
 
-          log.info('  total size:', prettyBytes(totalSize));
+          log.info('    total size:', prettyBytes(totalSize));
 
           return resolve(totalSize);
         });
@@ -124,7 +124,7 @@ class Syncronizer {
         // download
         async.parallelLimit(allDownloads, 6,
           function(err, results) {
-            log.info('all download finished');
+            log.info('    all downloads finished');
             log.debug('\n\n:: syncronizer - downloadAndLoadList ::');
             log.debug('outputs:', results);
 
@@ -157,7 +157,7 @@ class Syncronizer {
         // load
         async.parallelLimit(allLoads, 1,
           function(err, results) {
-            log.info('layers loaded');
+            log.info('    all layers loaded');
             log.debug('\n\n:: syncronizer - downloadAndLoadList ::');
             log.debug('outputs:', results);
 

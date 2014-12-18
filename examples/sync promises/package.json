@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "docker-registry-downloader": "^0.1.4"
+    "docker-registry-downloader": "^0.1.5"
   }
 }
