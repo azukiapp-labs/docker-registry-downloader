@@ -1,9 +1,6 @@
 require('source-map-support').install();
-var _ = require('lodash');
 var chai  = require('chai');
 var Q  = require('q');
-var path = require('path');
-var log = require('../../src/helpers/logger');
 var logError = require('../../src/helpers/error-helper');
 Q.onerror = logError;
 

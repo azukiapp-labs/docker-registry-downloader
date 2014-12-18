@@ -21,15 +21,15 @@ describe('Docker Registry API', function() {
     token:    null
   };
 
-  before(function(done) {
+  before(function() {
     this.timeout(10000);
     // 1 - get endpoint and token
-    Q.spawn(function* () {
+    return Q.async(function* () {
       var namespace = 'azukiapp';
       var repository = 'azktcl';
       hubResultAzktcl = yield dockerHub.images(namespace, repository);
-      done();
-    });
+      // done();
+    })();
   });
 
 

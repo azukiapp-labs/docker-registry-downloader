@@ -82,34 +82,93 @@ describe('Syncronizer', function() {
   });
 
   it('should download several layers', function(done) {
-    this.timeout(15000); // 15 seconds
+    this.timeout(30000); // 15 seconds
     Q.spawn(function* () {
 
-      var dockerHub = new DockerHub();
-      var namespace = 'azukiapp';
+      var dockerHub  = new DockerHub();
+      var namespace  = 'azukiapp';
       var repository = 'azktcl';
-      var hubResult = yield dockerHub.images(namespace, repository);
+      var hubResult  = yield dockerHub.images(namespace, repository);
 
       var opts = {
         endpoint    : hubResult.endpoint,
         token       : hubResult.token,
         outputPath  : __dirname + '/../../../spec/docker-registry/output',
-        imageIdList : ['afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120',
-                       '0f3c5c8028fbab8bd93aec406dcd4dce23296894abcf2ca93bde408348926f65',
-                       'fcef2eea64366f6dce50892aa457180e5a329eae6b89500881edd944e1b5b1d0',
-                       '9dfede15b99153dfa84ef64a4be3ce59e04e20f3cbdd7b6c58e2263907c50163',
-                       'aeae21d102569e871da86fd51ab8fd34ca12031a779ba6d02eea55a7f5123c10',
-                       '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303',
-                       'c58121c7a8c81b5848ec10e04029456c71ddd795ccca9c6a281d42ae34c3b73b',
-                       '511136ea3c5a64f264b78b5433614aec563103b4d4702f3ba7d4d2698e22c158']
+        imageIdList : [
+          'afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120',
+          '0f3c5c8028fbab8bd93aec406dcd4dce23296894abcf2ca93bde408348926f65',
+          'fcef2eea64366f6dce50892aa457180e5a329eae6b89500881edd944e1b5b1d0',
+          '9dfede15b99153dfa84ef64a4be3ce59e04e20f3cbdd7b6c58e2263907c50163',
+          'aeae21d102569e871da86fd51ab8fd34ca12031a779ba6d02eea55a7f5123c10',
+          '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303',
+          'c58121c7a8c81b5848ec10e04029456c71ddd795ccca9c6a281d42ae34c3b73b',
+          '511136ea3c5a64f264b78b5433614aec563103b4d4702f3ba7d4d2698e22c158'
+        ]
       };
-      var result = yield syncronizer.downloadAndLoadList(opts);
+      var result = yield syncronizer.downloadList(opts);
       chai.expect(result).to.not.be.undefined();
       done();
     });
   });
 
+  it('should load several layers', function(done) {
+    this.timeout(30000); // 15 seconds
+    Q.spawn(function* () {
 
+      var dockerHub  = new DockerHub();
+      var namespace  = 'azukiapp';
+      var repository = 'azktcl';
+      var hubResult  = yield dockerHub.images(namespace, repository);
 
+      var opts = {
+        endpoint    : hubResult.endpoint,
+        token       : hubResult.token,
+        outputPath  : __dirname + '/../../../spec/docker-registry/output',
+        imageIdList : [
+          'afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120',
+          '0f3c5c8028fbab8bd93aec406dcd4dce23296894abcf2ca93bde408348926f65',
+          'fcef2eea64366f6dce50892aa457180e5a329eae6b89500881edd944e1b5b1d0',
+          '9dfede15b99153dfa84ef64a4be3ce59e04e20f3cbdd7b6c58e2263907c50163',
+          'aeae21d102569e871da86fd51ab8fd34ca12031a779ba6d02eea55a7f5123c10',
+          '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303',
+          'c58121c7a8c81b5848ec10e04029456c71ddd795ccca9c6a281d42ae34c3b73b',
+          '511136ea3c5a64f264b78b5433614aec563103b4d4702f3ba7d4d2698e22c158'
+        ]
+      };
+      var result = yield syncronizer.downloadList(opts);
+      chai.expect(result).to.not.be.undefined();
+      done();
+    });
+  });
+
+  // it('should set tagson local layers', function(done) {
+  //   this.timeout(3000); // 15 seconds
+  //   Q.spawn(function* () {
+
+  //     var dockerHub = new DockerHub();
+  //     var namespace = 'azukiapp';
+  //     var repository = 'azktcl';
+  //     var hubResult = yield dockerHub.images(namespace, repository);
+
+  //     var opts = {
+  //       endpoint    : hubResult.endpoint,
+  //       token       : hubResult.token,
+  //       outputPath  : __dirname + '/../../../spec/docker-registry/output',
+  //       imageIdList : [
+  //         'afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120',
+  //         '0f3c5c8028fbab8bd93aec406dcd4dce23296894abcf2ca93bde408348926f65',
+  //         'fcef2eea64366f6dce50892aa457180e5a329eae6b89500881edd944e1b5b1d0',
+  //         '9dfede15b99153dfa84ef64a4be3ce59e04e20f3cbdd7b6c58e2263907c50163',
+  //         'aeae21d102569e871da86fd51ab8fd34ca12031a779ba6d02eea55a7f5123c10',
+  //         '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303',
+  //         'c58121c7a8c81b5848ec10e04029456c71ddd795ccca9c6a281d42ae34c3b73b',
+  //         '511136ea3c5a64f264b78b5433614aec563103b4d4702f3ba7d4d2698e22c158'
+  //       ]
+  //     };
+  //     var result = yield syncronizer.downloadList(opts);
+  //     chai.expect(result).to.not.be.undefined();
+  //     done();
+  //   });
+  // });
 
 });

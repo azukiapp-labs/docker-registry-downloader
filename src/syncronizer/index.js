@@ -121,37 +121,104 @@ class Syncronizer {
     }.bind(this));
   }
 
-  // downloadAndLoadList(opts) {
-  //   // opts: {
-  //   //   endpoint    : docker registry endpoint from dockerhub
-  //   //   token       : repository token         from dockerhub
-  //   //   outputPath  : local folder to save
-  //   //   imageIdList : all IDs to download
-  //   // }
-  //   return new Q.Promise(function (resolve, reject, notify) {
-  //     try {
-  //       var allDownloads = [];
+  downloadCallback(opts) {
+    // opts: {
+    //   endpoint   : docker registry endpoint from dockerhub
+    //   token      : repository token         from dockerhub
+    //   outputPath : local folder to save
+    //   imageId    : ImageID to download
+    // }
+    return function (callback) {
+      Q.spawn(function* () {
+        callback(null, yield this.dockerRegistry.prepareLoading(opts));
+      }.bind(this));
+    }.bind(this);
+  }
 
-  //       for (var i=0; i < opts.imageIdList.length; i++) {
-  //         var layerID = opts.imageIdList[i];
-  //         var fullpathOutput = path.join(opts.outputPath, layerID + ''
-  //         allDownloads.push(this.dockerRegistry.downloadImage(opts.endpoint,
-  //                                                             opts.token,
-  //                                                             opts.outputPath,
-  //                                                             layerID));
-  //       }
+  loadCallback(opts) {
+    // opts: {
+    //   endpoint   : docker registry endpoint from dockerhub
+    //   token      : repository token         from dockerhub
+    //   outputPath : local folder to save
+    //   imageId    : ImageID to download
+    // }
+    return function (callback) {
+      Q.spawn(function* () {
+        var result = yield this.dockerRemote.loadImage(opts);
+        callback(null, result);
+      }.bind(this));
+    }.bind(this);
+  }
 
-  //       async.parallelLimit(allDownloads, 10,
-  //       function(err, results) {
-  //         log.debug('\n\n:: syncronizer - downloadAndLoadList ::');
-  //         log.debug('outputs:', results);
-  //         return resolve(results);
-  //       });
-  //     } catch(err) {
-  //       reject(err);
-  //     }
-  //   }.bind(this));
-  // }
+  downloadList(opts) {
+    // opts: {
+    //   endpoint    : docker registry endpoint from dockerhub
+    //   token       : repository token         from dockerhub
+    //   outputPath  : local folder to save
+    //   imageIdList : all IDs to download
+    // }
+    return new Q.Promise(function (resolve, reject, notify) {
+      try {
+        var allDownloads = [];
+
+        for (var i=opts.imageIdList.length-1; i >= 0 ; i--) {
+          var layerID = opts.imageIdList[i];
+          var optsItem = _.clone(opts);
+          optsItem.imageId = layerID;
+          allDownloads.push(this.downloadCallback(optsItem));
+        }
+
+        // download
+        async.parallelLimit(allDownloads, 6,
+          function(err, results) {
+            log.info('all download finished');
+            log.debug('\n\n:: syncronizer - downloadAndLoadList ::');
+            log.debug('outputs:', results);
+
+            resolve(results);
+          }
+        );
+      } catch(err) {
+        reject(err);
+      }
+
+    }.bind(this));
+  }
+
+  loadList(opts) {
+    // opts: {
+    //   endpoint    : docker registry endpoint from dockerhub
+    //   token       : repository token         from dockerhub
+    //   outputPath  : local folder to save
+    //   imageIdList : all IDs to download
+    // }
+    return new Q.Promise(function (resolve, reject, notify) {
+      try {
+        var allLoads = [];
+
+        for (var i=opts.imageIdList.length-1; i >= 0 ; i--) {
+          var layerID = opts.imageIdList[i];
+          var optsItem = _.clone(opts);
+          optsItem.imageId = layerID;
+          allLoads.push(this.loadCallback(optsItem));
+        }
+
+        // load
+        async.parallelLimit(allLoads, 1,
+          function(err, results) {
+            log.info('layers loaded');
+            log.debug('\n\n:: syncronizer - downloadAndLoadList ::');
+            log.debug('outputs:', results);
+
+            return resolve(results);
+          }
+        );
+      } catch(err) {
+        reject(err);
+      }
+
+    }.bind(this));
+  }
 
 
 }

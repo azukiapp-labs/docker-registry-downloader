@@ -185,6 +185,7 @@ class DockerRegistry {
         log.debug('\n\n:: docker-registry - downloadImageGetSize headers ::');
         log.debug('ID:  ', imageId);
         var len = parseInt(res.headers['content-length'], 10);
+        log.debug('res.headers:', res.headers);
         log.debug('size:', prettyBytes(len));
         r.abort();
         callback(null, len);
