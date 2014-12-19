@@ -33,7 +33,7 @@ class DockerRegistry {
           resolve(result);
         }
         else {
-          reject(response);
+          reject(body);
         }
       }
       request(options, callback);
@@ -56,7 +56,7 @@ class DockerRegistry {
           resolve(result);
         }
         else {
-          reject(response);
+          reject(body);
         }
       }
       request(options, callback);
@@ -89,7 +89,7 @@ class DockerRegistry {
           resolve(result);
         }
         else {
-          reject(response);
+          reject(body);
         }
       }
 
@@ -137,7 +137,7 @@ class DockerRegistry {
           resolve(result);
         }
         else {
-          reject(response);
+          reject(body);
         }
       }
       request(options, callback);

@@ -49,6 +49,7 @@ class DockerHub {
           resolve(result);
         }
         else {
+          log.error(response.statusCode);
           reject(error);
         }
       }
