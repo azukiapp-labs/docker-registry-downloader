@@ -2,4 +2,5 @@ examples/
 node_modules/
 script/
 spec/
+lib/spec/
 .travis.yml

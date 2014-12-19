@@ -213,9 +213,9 @@ class Syncronizer {
           var totalSize = yield this.getSizes(hubResult, layersToDownload);
 
           if (totalSize > 0) {
-            log.info('  downloading all layers...');
+            log.info('  downloading ' + layersToDownload.length + ' layers ' + prettyBytes(totalSize) + '...');
 
-            var progressMessage = '        [:bar] :percent :elapsed ( '+ prettyBytes(totalSize) +' )';
+            var progressMessage = '        [:bar] :percent ( time elapsed: :elapsed seconds )';
             var bar = new ProgressBar(progressMessage, {
               complete: '=',
               incomplete: ' ',
