@@ -3,7 +3,6 @@ var Q  = require('q');
 var log = require('../helpers/logger');
 var fs = require('fs');
 var path = require('path');
-var ProgressBar = require('progress');
 var prettyBytes = require('pretty-bytes');
 
 import FsHelper from '../fs-helper';
@@ -193,7 +192,7 @@ class DockerRegistry {
     };
   }
 
-  downloadImage(hubResult, outputPath, imageId) {
+  downloadImage(hubResult, outputPath, imageId, iProgress) {
     return new Q.Promise(function (resolve, reject, notify) {
 
       var options = {
@@ -204,24 +203,14 @@ class DockerRegistry {
         method: 'GET'
       };
 
-      var imageIdPartial = imageId.substr(0, 8);
-
       // HTTP GET Request -> outputFile
       request(options)
         .on('response', function(res) {
           log.debug('\n\n:: docker-registry - downloadImage headers ::');
           log.debug(res.headers);
-          var len = parseInt(res.headers['content-length'], 10);
-          var progressMessage = '          ' + imageIdPartial + ' [:bar] :percent :elapsed ( '+ prettyBytes(len) +' )';
-          var bar = new ProgressBar(progressMessage, {
-            complete: '=',
-            incomplete: ' ',
-            width: 40,
-            total: len
-          });
 
           res.on('data', function (chunk) {
-            bar.tick(chunk.length);
+            iProgress(chunk.length);
           });
 
           res.on('end', function () {
@@ -234,7 +223,7 @@ class DockerRegistry {
   }
 
   // http://docs.docker.com/reference/api/docker_remote_api_v1.16/#load-a-tarball-with-a-set-of-images-and-tags-into-docker
-  prepareLoading(hubResult, outputPath, imageId) {
+  prepareLoading(hubResult, outputPath, imageId, iProgress) {
     return new Q.Promise(function (resolve, reject, notify) {
       try {
         Q.spawn(function* () {
@@ -253,7 +242,7 @@ class DockerRegistry {
 
           // layer.tar: A tarfile containing the filesystem changes in this layer
           var layerTarFilePath = path.join(outputLoadPath, "layer.tar");
-          yield this.downloadImage(hubResult, layerTarFilePath, imageId);
+          yield this.downloadImage(hubResult, layerTarFilePath, imageId, iProgress);
 
           // create tar file
           yield fsHelper.tarPack(outputLoadPath, path.join(outputLoadPath, '..', imageId + '.tar'));

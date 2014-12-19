@@ -3,6 +3,7 @@ var log = require('../helpers/logger');
 var _ = require('lodash');
 var prettyBytes = require('pretty-bytes');
 var async = require('async');
+var ProgressBar = require('progress');
 
 import DockerHub from '../docker-hub';
 import DockerRegistry from '../docker-registry';
@@ -79,8 +80,6 @@ class Syncronizer {
           log.debug('\n\n:: syncronizer - getSizes ::');
           log.debug('layers:', layersList.length);
 
-          log.info('    total size:', prettyBytes(totalSize));
-
           return resolve(totalSize);
         });
       } catch(err) {
@@ -89,11 +88,11 @@ class Syncronizer {
     }.bind(this));
   }
 
-  downloadCallback(hubResult, outputPath, imageId) {
+  downloadCallback(hubResult, outputPath, imageId, iProgress) {
     return function (callback) {
       Q.spawn(function* () {
         callback(null, yield this.dockerRegistry.prepareLoading(
-          hubResult, outputPath, imageId));
+          hubResult, outputPath, imageId, iProgress));
       }.bind(this));
     }.bind(this);
   }
@@ -111,20 +110,19 @@ class Syncronizer {
   // token       : repository token         from dockerhub
   // outputPath  : local folder to save
   // imageIdList : all IDs to download
-  downloadList(hubResult, outputPath, imageIdList) {
+  downloadList(hubResult, outputPath, imageIdList, iProgress) {
     return new Q.Promise(function (resolve, reject, notify) {
       try {
         var allDownloads = [];
 
         for (var i=imageIdList.length-1; i >= 0 ; i--) {
           var layerID = imageIdList[i];
-          allDownloads.push(this.downloadCallback(hubResult, outputPath, layerID));
+          allDownloads.push(this.downloadCallback(hubResult, outputPath, layerID, iProgress));
         }
 
         // download
         async.parallelLimit(allDownloads, 6,
           function(err, results) {
-            log.info('    all downloads finished');
             log.debug('\n\n:: syncronizer - downloadAndLoadList ::');
             log.debug('outputs:', results);
 
@@ -157,7 +155,6 @@ class Syncronizer {
         // load
         async.parallelLimit(allLoads, 1,
           function(err, results) {
-            log.info('    all layers loaded');
             log.debug('\n\n:: syncronizer - downloadAndLoadList ::');
             log.debug('outputs:', results);
 
@@ -213,11 +210,24 @@ class Syncronizer {
           var layersToDownload = yield this.compare(hubResult, tag);
 
           log.info('  getting total size...');
-          var getTotalSize = yield this.getSizes(hubResult, layersToDownload);
+          var totalSize = yield this.getSizes(hubResult, layersToDownload);
 
-          if (getTotalSize > 0) {
+          if (totalSize > 0) {
             log.info('  downloading all layers...');
-            yield this.downloadList(hubResult, outputPath, layersToDownload);
+
+            var progressMessage = '        [:bar] :percent :elapsed ( '+ prettyBytes(totalSize) +' )';
+            var bar = new ProgressBar(progressMessage, {
+              complete: '=',
+              incomplete: ' ',
+              width: 23,
+              total: totalSize
+            });
+
+            var iProgress = function(chunkSize) {
+              bar.tick(chunkSize);
+            };
+
+            yield this.downloadList(hubResult, outputPath, layersToDownload, iProgress);
 
             log.info('  loading all layers...');
             yield this.loadList(hubResult, outputPath, layersToDownload);
