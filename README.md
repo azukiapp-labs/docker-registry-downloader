@@ -22,9 +22,17 @@ docker rmi -f azukiapp/azktcl:0.0.2
 node start.js
 ```
 
-### install
+### install as a lib
 ```shell
 npm i docker-registry-downloader --save
+```
+
+### install npm module globally
+```shell
+[sudo] npm i docker-registry-downloader -g
+
+# usage example
+registrySync library/ruby:latest -o /var/tmp
 ```
 
 ### usage
