@@ -210,7 +210,9 @@ class DockerRegistry {
           log.debug(res.headers);
 
           res.on('data', function (chunk) {
-            iProgress(chunk.length);
+            if (iProgress) {
+              iProgress(chunk.length);
+            }
           });
 
           res.on('end', function () {
