@@ -173,6 +173,7 @@ class Syncronizer {
       try {
         Q.spawn(function* () {
 
+          // get all tags
           var tags = yield this.dockerRegistry.tags(hubResult);
           var results = [];
           for(var name in tags)

@@ -135,7 +135,7 @@ describe('Syncronizer', function() {
     });
   });
 
-  it('should sync azukiapp/azktcl:0.0.2', function(done) {
+  it('should sync azukiapp/azktcl:0.0.1', function(done) {
     this.timeout(30000);
     Q.spawn(function* () {
 
@@ -144,7 +144,7 @@ describe('Syncronizer', function() {
       var dockerHub  = new DockerHub();
       var hubResult  = yield dockerHub.images(namespace, repository);
 
-      var tag = '0.0.2';
+      var tag = '0.0.1';
       var outputPath = __dirname + '/../../../spec/docker-registry/output';
       var result = yield syncronizer.sync(hubResult, tag, outputPath);
 

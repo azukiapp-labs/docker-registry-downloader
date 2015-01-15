@@ -314,7 +314,8 @@ class DockerRemote {
           // tag local image
           image.tag({
             repo : namespace + '/' + repository,
-            tag  : tagName
+            tag  : tagName,
+            force: true
           }, function(err, data) {
             if(err) {
               return reject(err);
