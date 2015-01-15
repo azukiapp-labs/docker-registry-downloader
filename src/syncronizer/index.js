@@ -11,10 +11,10 @@ import DockerRemote from '../docker-remote';
 
 class Syncronizer {
 
-	constructor() {
+	constructor(dockerode_instance) {
     this.dockerHub = new DockerHub();
 		this.dockerRegistry = new DockerRegistry();
-		this.dockerRemote = new DockerRemote();
+		this.dockerRemote = new DockerRemote(dockerode_instance);
   }
 
   compare(hubResult, tag) {

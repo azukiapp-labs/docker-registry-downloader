@@ -7,7 +7,7 @@ var _ = require('lodash');
 
 class DockerRemote {
 
-	constructor() {
+	constructor(dockerode_instance) {
 		var socket = process.env.DOCKER_SOCKET || '/var/run/docker.sock';
 		var stats  = fs.statSync(socket);
 
@@ -15,7 +15,7 @@ class DockerRemote {
 		  throw new Error("Are you sure the docker is running?");
 		}
 
-		this.docker = new Docker({ socketPath: socket });
+		this.docker = dockerode_instance || new Docker({ socketPath: socket });
   }
 
  	listActiveContainers() {
