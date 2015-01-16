@@ -153,4 +153,21 @@ describe('Syncronizer', function() {
     });
   });
 
+  it('should sync azukiapp/azktcl:0.0.1 on OS temp folder', function(done) {
+    this.timeout(30000);
+    Q.spawn(function* () {
+
+      var namespace  = 'azukiapp';
+      var repository = 'azktcl';
+      var dockerHub  = new DockerHub();
+      var hubResult  = yield dockerHub.images(namespace, repository);
+
+      var tag = '0.0.1';
+      var result = yield syncronizer.sync(hubResult, tag);
+
+      chai.expect(result).to.not.be.undefined();
+      done();
+    });
+  });
+
 });

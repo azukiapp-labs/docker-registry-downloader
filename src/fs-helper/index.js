@@ -17,13 +17,16 @@ class FsHelper {
     });
   }
 
-  createCleanFolder(fullPath) {
+  createCleanFolder(fullPath, cleanFolder) {
     return new Q.Promise(function (resolve, reject, notify) {
       try {
         Q.spawn(function* () {
-          if (yield this.fsExists(fullPath)) {
-            // remove folder if exists
-            yield this.removeDirRecursive(fullPath);
+          var willCleanFolder = cleanFolder || true;
+          if (willCleanFolder) {
+            if( yield this.fsExists(fullPath) ) {
+              // remove folder if exists
+              yield this.removeDirRecursive(fullPath);
+            }
           }
           yield Q.nfcall(fs.mkdir, fullPath);
           resolve(fullPath);

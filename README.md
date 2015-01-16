@@ -1,8 +1,7 @@
 Docker Registry Downloader
 ==========================
 
-Syncronize images from Docker Registry with your local Docker images.
-Works just like `docker pull` but better because is faster.
+Syncronize images from Docker Registry with your local Docker images. Works just like new implementation of `docker pull` downloading severals layers in parallel.
 
 ### Quick-start sample app
 ```shell
@@ -45,7 +44,7 @@ var syncronizer = new Syncronizer();
 var namespace   = 'azukiapp';
 var repository  = 'azktcl';
 var tag         = '0.0.2';
-var outputPath  = __dirname + '/output'; // this folder must exist
+var outputPath  = '/tmp'; // this folder must exist
 
 // get token from DOCKER HUB API
 dockerHub.images(namespace, repository).then(function(hubResult) {

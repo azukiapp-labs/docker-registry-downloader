@@ -1,13 +1,18 @@
-var Q  = require('q');
-var log = require('../helpers/logger');
-var _ = require('lodash');
-var prettyBytes = require('pretty-bytes');
-var async = require('async');
-var ProgressBar = require('progress');
-
-import DockerHub from '../docker-hub';
+import DockerHub      from '../docker-hub';
 import DockerRegistry from '../docker-registry';
-import DockerRemote from '../docker-remote';
+import DockerRemote   from '../docker-remote';
+import FsHelper       from '../fs-helper';
+
+var path        = require('path');
+var Q           = require('q');
+var log         = require('../helpers/logger');
+var _           = require('lodash');
+var prettyBytes = require('pretty-bytes');
+var async       = require('async');
+var ProgressBar = require('progress');
+var os          = require('os');
+var fsHelper    = new FsHelper();
+
 
 class Syncronizer {
 
@@ -205,6 +210,12 @@ class Syncronizer {
       try {
         Q.spawn(function* () {
 
+          if (!outputPath) {
+            outputPath = this.getOsTempDir();
+            log.info('creating temp folder', outputPath);
+            yield this.createTempDir(outputPath);
+          }
+
           var imageFullName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
           log.info('syncing', imageFullName);
           log.info('  comparing docker registry with local images...');
@@ -242,6 +253,11 @@ class Syncronizer {
 
           log.info('finished loading', imageFullName);
 
+          if (outputPath === this.getOsTempDir()) {
+            log.info('removing temp folder', outputPath);
+            yield this.removeTempDir(outputPath);
+          }
+
           resolve(true);
 
         }.bind(this));
@@ -252,6 +268,17 @@ class Syncronizer {
 
   }
 
+  createTempDir(dir) {
+    return fsHelper.createCleanFolder(dir);
+  }
+
+  getOsTempDir() {
+    return path.join(os.tmpdir(), 'docker-download-temp');
+  }
+
+  removeTempDir(dir) {
+    return fsHelper.removeDirRecursive(dir);
+  }
 
 }
 
