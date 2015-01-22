@@ -7,15 +7,18 @@ var _ = require('lodash');
 
 class DockerRemote {
 
-	constructor(docker_socketPath) {
-		var socket = process.env.DOCKER_SOCKET || docker_socketPath || '/var/run/docker.sock';
-		var stats  = fs.statSync(socket);
-
-		if (!stats.isSocket()) {
-		  throw new Error("Are you sure the docker is running?");
-		}
-
-    this.docker = new Docker({ socketPath: socket });
+	constructor(dockerode_options) {
+    if (dockerode_options.dockerode_modem) {
+      this.docker = new Docker();
+      this.docker.modem = dockerode_options.dockerode_modem;
+    } else {
+      var socket = process.env.DOCKER_SOCKET || dockerode_options.socket_dockerode || '/var/run/docker.sock';
+      var stats  = fs.statSync(socket);
+      if (!stats.isSocket()) {
+        throw new Error("Are you sure the docker is running?");
+      }
+      this.docker = new Docker({ socketPath: socket });
+    }
   }
 
  	listActiveContainers() {
