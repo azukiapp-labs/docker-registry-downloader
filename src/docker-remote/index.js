@@ -8,7 +8,7 @@ var _ = require('lodash');
 class DockerRemote {
 
 	constructor(dockerode_options) {
-    if (dockerode_options.dockerode_modem) {
+    if (dockerode_options && dockerode_options.dockerode_modem) {
       this.docker = new Docker();
       this.docker.modem = dockerode_options.dockerode_modem;
     } else {
