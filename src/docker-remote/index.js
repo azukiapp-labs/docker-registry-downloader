@@ -12,7 +12,7 @@ class DockerRemote {
       this.docker = new Docker();
       this.docker.modem = dockerode_options.dockerode_modem;
     } else {
-      var socket = process.env.DOCKER_SOCKET || dockerode_options.socket_dockerode || '/var/run/docker.sock';
+      var socket = process.env.DOCKER_SOCKET || (dockerode_options && dockerode_options.socket_dockerode) || '/var/run/docker.sock';
       var stats  = fs.statSync(socket);
       if (!stats.isSocket()) {
         throw new Error("Are you sure the docker is running?");

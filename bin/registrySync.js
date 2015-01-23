@@ -12,7 +12,6 @@ var argv = require('yargs')
   .demand(1)
   .demand('output')
 
-
   .showHelpOnFail(true)
   .argv;
 
