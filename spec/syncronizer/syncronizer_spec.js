@@ -44,8 +44,39 @@ describe('Syncronizer', function() {
     });
   });
 
+  it('should sync only few layers from azukiapp/azktcl:0.0.1', function(done) {
+    this.timeout(30000);
+    Q.spawn(function* () {
+
+      var namespace  = 'azukiapp';
+      var repository = 'azktcl';
+      var dockerHub  = new DockerHub();
+      var hubResult  = yield dockerHub.images(namespace, repository);
+
+      var tag = '0.0.1';
+      var outputPath = __dirname + '/../../../spec/docker-registry/output';
+
+      // <><> MOCK dockerRemote.anscestors()
+      var original = syncronizer.dockerRemote.anscestors;
+      syncronizer.dockerRemote.anscestors = function() {
+        return new Q.Promise(function (resolve, reject, notify) {
+          resolve(require('../stubs/anscestors').simulate_old_azktcl_0_0_1);
+        });
+      };
+
+      // check layers
+      var result = yield syncronizer.compare(hubResult, tag);
+
+      // <><> UNMOCK dockerRemote.anscestors()
+      syncronizer.dockerRemote.anscestors = original;
+
+      chai.expect(result).to.have.length(2);
+      done();
+    });
+  });
+
   it('should sum all sizes', function(done) {
-    this.timeout(10000);
+    this.timeout(15000);
 
     Q.spawn(function* () {
 

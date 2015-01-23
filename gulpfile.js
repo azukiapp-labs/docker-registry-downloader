@@ -6,7 +6,7 @@ var plumber = require('gulp-plumber');
 var yargs = require('yargs');
 
 var sources = ['src/**/*.js'];
-var testSources = ['spec/**/*_spec.js'];
+var testSources = ['spec/**/*.js'];
 var allSources = sources.concat(testSources);
 
 var sourcesTranspiled = ['lib/src/**/*.js'];
