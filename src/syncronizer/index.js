@@ -93,6 +93,33 @@ class Syncronizer {
     }.bind(this));
   }
 
+  checkDownloadedFiles(layersList, outputPath) {
+    return new Q.Promise(function (resolve, reject, notify) {
+      try {
+        Q.spawn(function* () {
+
+          var layerToDownload = [];
+
+          for (var i=0; i < layersList.length; i++) {
+            var layerID = layersList[i];
+            var filename = path.join(outputPath, layerID + '.tar');
+            var fileExists = yield fsHelper.fsExists(filename);
+            if(!fileExists) {
+              layerToDownload.push(layerID);
+            }
+          }
+
+          resolve(layerToDownload);
+
+        }.bind(this));
+
+      } catch(err) {
+        reject(err);
+      }
+    }.bind(this));
+  }
+
+
   downloadCallback(hubResult, outputPath, imageId, iProgress) {
     return function (callback) {
       Q.spawn(function* () {
@@ -102,10 +129,11 @@ class Syncronizer {
     }.bind(this);
   }
 
-  loadCallback(hubResult, outputPath, imageId) {
+  loadCallback(hubResult, outputPath, imageId, iProgress) {
     return function (callback) {
       Q.spawn(function* () {
         var result = yield this.dockerRemote.loadImage(outputPath, imageId);
+        iProgress(1);
         callback(null, result);
       }.bind(this));
     }.bind(this);
@@ -141,7 +169,7 @@ class Syncronizer {
     }.bind(this));
   }
 
-  loadList(hubResult, outputPath, imageIdList) {
+  loadList(hubResult, outputPath, imageIdList, iProgress) {
     // opts: {
     //   endpoint    : docker registry endpoint from dockerhub
     //   token       : repository token         from dockerhub
@@ -154,7 +182,7 @@ class Syncronizer {
 
         for (var i=imageIdList.length-1; i >= 0 ; i--) {
           var layerID = imageIdList[i];
-          allLoads.push(this.loadCallback(hubResult, outputPath, layerID));
+          allLoads.push(this.loadCallback(hubResult, outputPath, layerID, iProgress));
         }
 
         // load
@@ -206,6 +234,7 @@ class Syncronizer {
   }
 
   sync(hubResult, tag, outputPath) {
+    var progressMessage, bar, iProgress;
     return new Q.Promise(function (resolve, reject, notify) {
       try {
         Q.spawn(function* () {
@@ -219,34 +248,51 @@ class Syncronizer {
           var imageFullName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
           log.info('syncing', imageFullName);
           log.info('  comparing docker registry with local images...');
-          var layersToDownload = yield this.compare(hubResult, tag);
+          var totalLayersToLoad = yield this.compare(hubResult, tag);
 
           log.info('  getting total size...');
-          var totalSize = yield this.getSizes(hubResult, layersToDownload);
+          var diffFilesToDownload = yield this.checkDownloadedFiles(totalLayersToLoad, outputPath);
+          var totalSize = yield this.getSizes(hubResult, diffFilesToDownload);
 
           if (totalSize > 0) {
-            log.info('  downloading ' + layersToDownload.length + ' layers ' + prettyBytes(totalSize) + '...');
 
-            var progressMessage = '        [:bar] :percent ( time elapsed: :elapsed seconds )';
-            var bar = new ProgressBar(progressMessage, {
-              complete: '=',
-              incomplete: ' ',
-              width: 23,
-              total: totalSize
-            });
+            if(diffFilesToDownload.length > 0) {
+              log.info('  downloading ' + diffFilesToDownload.length + ' layers ' + prettyBytes(totalSize) + '...');
 
-            var iProgress = function(chunkSize) {
-              bar.tick(chunkSize);
-            };
+              progressMessage = '        [:bar] :percent ( time elapsed: :elapsed seconds )';
+              bar = new ProgressBar(progressMessage, {
+                complete: '=',
+                incomplete: ' ',
+                width: 23,
+                total: totalSize
+              });
 
-            yield this.downloadList(hubResult, outputPath, layersToDownload, iProgress);
+              iProgress = function(chunkSize) {
+                bar.tick(chunkSize);
+              };
 
-            log.info('  loading all layers...');
-            yield this.loadList(hubResult, outputPath, layersToDownload);
+              yield this.downloadList(hubResult, outputPath, diffFilesToDownload, iProgress);
+            }
+
           }
           else{
             log.info('  nothing to download');
           }
+
+          log.info('  loading ' + totalLayersToLoad.length + ' layers...');
+          progressMessage = '        [:bar] :percent ( time elapsed: :elapsed seconds )';
+          bar = new ProgressBar(progressMessage, {
+            complete: '=',
+            incomplete: ' ',
+            width: 23,
+            total: totalLayersToLoad.length
+          });
+
+          iProgress = function(num) {
+            bar.tick(num);
+          };
+
+          yield this.loadList(hubResult, outputPath, totalLayersToLoad, iProgress);
 
           log.info('  setting tags...');
           yield this.setTags(hubResult);
