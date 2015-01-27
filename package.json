@@ -1,6 +1,6 @@
 {
   "name": "docker-registry-downloader",
-  "version": "0.1.22",
+  "version": "0.1.23",
   "description": "docker registry downloader",
   "main": "index.js",
   "scripts": {
