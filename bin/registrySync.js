@@ -48,7 +48,7 @@ var fromFullPath = argv._;
 var outputFolder = argv.o;
 var forceOverwrite = argv.f;
 
-var fromFullPathRegex = /^(\w+)\/(\w+):(.*)$/gm;
+var fromFullPathRegex = /^([\w-]+)\/([\w-]+):(.*)$/gm;
 var captureResult = fromFullPathRegex.exec(fromFullPath);
 if (captureResult && captureResult.length === 4) {
   var namespace = captureResult[1];

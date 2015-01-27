@@ -60,6 +60,7 @@ class Syncronizer {
         }.bind(this));
 
       } catch(err) {
+        log.error(err.stack);
         reject(err);
       }
     }.bind(this));
@@ -77,6 +78,9 @@ class Syncronizer {
 
         async.parallelLimit(allChecks, 10,
         function(err, results) {
+          if (err) {
+            return reject(err);
+          }
 
           var totalSize = _.reduce(results, function(sum, num) {
             return sum + num;
@@ -88,6 +92,7 @@ class Syncronizer {
           return resolve(totalSize);
         });
       } catch(err) {
+        log.error(err.stack);
         reject(err);
       }
     }.bind(this));
@@ -114,6 +119,7 @@ class Syncronizer {
         }.bind(this));
 
       } catch(err) {
+        log.error(err.stack);
         reject(err);
       }
     }.bind(this));
@@ -163,6 +169,7 @@ class Syncronizer {
           }
         );
       } catch(err) {
+        log.error(err.stack);
         reject(err);
       }
 
@@ -195,6 +202,7 @@ class Syncronizer {
           }
         );
       } catch(err) {
+        log.error(err.stack);
         reject(err);
       }
 
@@ -227,6 +235,7 @@ class Syncronizer {
 
         }.bind(this));
       } catch(err) {
+        log.error(err.stack);
         reject(err);
       }
     }.bind(this));
@@ -255,21 +264,20 @@ class Syncronizer {
           log.info('  getting total size...');
           var diffFilesToDownload;
           if (forceOverwrite) {
-            log.info('  (force overwrite is active)...');
             // will download and overwrite all files
+            log.info('  (force overwrite is active)...');
             diffFilesToDownload = totalLayersToLoad;
           } else {
             // will download only files that does not exists
+            log.info('  checking already downloaded files...');
             diffFilesToDownload = yield this.checkDownloadedFiles(totalLayersToLoad, outputPath);
           }
 
           // calculate total size to download
           var totalSize = yield this.getSizes(hubResult, diffFilesToDownload);
           if (totalSize > 0) {
-
             if(diffFilesToDownload.length > 0) {
               log.info('  downloading ' + diffFilesToDownload.length + ' layers ' + prettyBytes(totalSize) + '...');
-
               progressMessage = '        [:bar] :percent ( time elapsed: :elapsed seconds )';
               bar = new ProgressBar(progressMessage, {
                 complete: '=',
@@ -277,14 +285,11 @@ class Syncronizer {
                 width: 23,
                 total: totalSize
               });
-
               iProgress = function(chunkSize) {
                 bar.tick(chunkSize);
               };
-
               yield this.downloadList(hubResult, outputPath, diffFilesToDownload, iProgress);
             }
-
           }
 
           log.info('  download folder: `' + outputPath + '`');
@@ -296,11 +301,9 @@ class Syncronizer {
             width: 23,
             total: totalLayersToLoad.length
           });
-
           iProgress = function(num) {
             bar.tick(num);
           };
-
           yield this.loadList(hubResult, outputPath, totalLayersToLoad, iProgress);
 
           log.info('  setting tags...');
