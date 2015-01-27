@@ -61,7 +61,7 @@ else {
 }
 
 if (!outputFolder) {
-  outputFolder = syncronizer.getOsTempDir(namespace, repository);
+  outputFolder = syncronizer.getOsTempDir();
   syncronizer.createTempDir(outputFolder);
 }
 

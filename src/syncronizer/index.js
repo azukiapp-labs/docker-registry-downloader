@@ -240,7 +240,8 @@ class Syncronizer {
         Q.spawn(function* () {
 
           if (!outputPath) {
-            outputPath = this.getOsTempDir(hubResult.namespace, hubResult.repository);
+            // no folder was sent, set to /tmp
+            outputPath = this.getOsTempDir();
             log.info('creating temp folder', outputPath);
             yield this.createAndCleanTempDir(outputPath);
           }
@@ -285,10 +286,8 @@ class Syncronizer {
             }
 
           }
-          else{
-            log.info('  nothing to download');
-          }
 
+          log.info('  download folder: `' + outputPath + '`');
           log.info('  loading ' + totalLayersToLoad.length + ' layers...');
           progressMessage = '        [:bar] :percent ( time elapsed: :elapsed seconds )';
           bar = new ProgressBar(progressMessage, {
@@ -309,10 +308,10 @@ class Syncronizer {
 
           log.info('finished loading', imageFullName);
 
-          if (outputPath === this.getOsTempDir(hubResult.namespace, hubResult.repository)) {
-            log.info('removing temp folder', outputPath);
-            yield this.removeTempDir(outputPath);
-          }
+          // if (outputPath === this.getOsTempDir()) {
+          //   log.info('removing temp folder', outputPath);
+          //   yield this.removeTempDir(outputPath);
+          // }
 
           resolve(true);
 
@@ -322,7 +321,6 @@ class Syncronizer {
         reject(err);
       }
     }.bind(this));
-
   }
 
   createAndCleanTempDir(dir) {
@@ -333,8 +331,9 @@ class Syncronizer {
     return fsHelper.createFolder(dir);
   }
 
-  getOsTempDir(namespace, repository) {
-    return path.join(os.tmpdir(), 'docker-download-temp', namespace, repository);
+  getOsTempDir(folderName) {
+    var tempFolderName = folderName || 'docker-registry-downloader-temp';
+    return path.join(os.tmpdir(), tempFolderName);
   }
 
   removeTempDir(dir) {
