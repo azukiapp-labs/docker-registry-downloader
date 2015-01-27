@@ -233,27 +233,38 @@ class Syncronizer {
 
   }
 
-  sync(hubResult, tag, outputPath) {
+  sync(hubResult, tag, outputPath, forceOverwrite) {
     var progressMessage, bar, iProgress;
     return new Q.Promise(function (resolve, reject, notify) {
       try {
         Q.spawn(function* () {
 
           if (!outputPath) {
+            // no folder was sent, set to /tmp
             outputPath = this.getOsTempDir();
             log.info('creating temp folder', outputPath);
-            yield this.createTempDir(outputPath);
+            yield this.createAndCleanTempDir(outputPath);
           }
 
           var imageFullName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
           log.info('syncing', imageFullName);
           log.info('  comparing docker registry with local images...');
+          // compare all local layers with registry layers
           var totalLayersToLoad = yield this.compare(hubResult, tag);
 
           log.info('  getting total size...');
-          var diffFilesToDownload = yield this.checkDownloadedFiles(totalLayersToLoad, outputPath);
-          var totalSize = yield this.getSizes(hubResult, diffFilesToDownload);
+          var diffFilesToDownload;
+          if (forceOverwrite) {
+            log.info('  (force overwrite is active)...');
+            // will download and overwrite all files
+            diffFilesToDownload = totalLayersToLoad;
+          } else {
+            // will download only files that does not exists
+            diffFilesToDownload = yield this.checkDownloadedFiles(totalLayersToLoad, outputPath);
+          }
 
+          // calculate total size to download
+          var totalSize = yield this.getSizes(hubResult, diffFilesToDownload);
           if (totalSize > 0) {
 
             if(diffFilesToDownload.length > 0) {
@@ -275,10 +286,8 @@ class Syncronizer {
             }
 
           }
-          else{
-            log.info('  nothing to download');
-          }
 
+          log.info('  download folder: `' + outputPath + '`');
           log.info('  loading ' + totalLayersToLoad.length + ' layers...');
           progressMessage = '        [:bar] :percent ( time elapsed: :elapsed seconds )';
           bar = new ProgressBar(progressMessage, {
@@ -299,27 +308,32 @@ class Syncronizer {
 
           log.info('finished loading', imageFullName);
 
-          if (outputPath === this.getOsTempDir()) {
-            log.info('removing temp folder', outputPath);
-            yield this.removeTempDir(outputPath);
-          }
+          // if (outputPath === this.getOsTempDir()) {
+          //   log.info('removing temp folder', outputPath);
+          //   yield this.removeTempDir(outputPath);
+          // }
 
           resolve(true);
 
         }.bind(this));
       } catch(err) {
+        log.error(err.stack);
         reject(err);
       }
     }.bind(this));
-
   }
 
-  createTempDir(dir) {
+  createAndCleanTempDir(dir) {
     return fsHelper.createCleanFolder(dir);
   }
 
-  getOsTempDir() {
-    return path.join(os.tmpdir(), 'docker-download-temp');
+  createTempDir(dir) {
+    return fsHelper.createFolder(dir);
+  }
+
+  getOsTempDir(folderName) {
+    var tempFolderName = folderName || 'docker-registry-downloader-temp';
+    return path.join(os.tmpdir(), tempFolderName);
   }
 
   removeTempDir(dir) {

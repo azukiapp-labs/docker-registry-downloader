@@ -1,5 +1,6 @@
 var Q  = require('q');
 var fs = require('fs');
+var FS = require("q-io/fs");
 var rmdir = require('rimraf');
 
 class FsHelper {
@@ -17,18 +18,28 @@ class FsHelper {
     });
   }
 
-  createCleanFolder(fullPath, cleanFolder) {
+  createCleanFolder(fullPath) {
     return new Q.Promise(function (resolve, reject, notify) {
       try {
         Q.spawn(function* () {
-          var willCleanFolder = cleanFolder || true;
-          if (willCleanFolder) {
-            if( yield this.fsExists(fullPath) ) {
-              // remove folder if exists
-              yield this.removeDirRecursive(fullPath);
-            }
+          if( yield this.fsExists(fullPath) ) {
+            // remove folder if exists
+            yield this.removeDirRecursive(fullPath);
           }
-          yield Q.nfcall(fs.mkdir, fullPath);
+          yield FS.makeTree(fullPath);
+          resolve(fullPath);
+        }.bind(this));
+      } catch(err) {
+        reject(err);
+      }
+    }.bind(this));
+  }
+
+  createFolder(fullPath) {
+    return new Q.Promise(function (resolve, reject, notify) {
+      try {
+        Q.spawn(function* () {
+          yield FS.makeTree(fullPath);
           resolve(fullPath);
         }.bind(this));
       } catch(err) {
