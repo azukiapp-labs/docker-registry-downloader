@@ -8,9 +8,9 @@ import Syncronizer from './syncronizer';
 import FsHelper from './fs-helper';
 
 module.exports = {
-	DockerHub: DockerHub,
-	DockerRegistry: DockerRegistry,
-	DockerRemote: DockerRemote,
+  DockerHub: DockerHub,
+  DockerRegistry: DockerRegistry,
+  DockerRemote: DockerRemote,
   Syncronizer: Syncronizer,
-	FsHelper: FsHelper,
+  FsHelper: FsHelper,
 };
