@@ -14,7 +14,7 @@ systems({
       "npm install",
     ],
     workdir: "/azk/#{manifest.dir}",
-    shell: "/bin/bash",
+    shell: "/usr/local/bin/wrapdocker",
     command: "npm start",
     wait: {"retry": 20, "timeout": 1000},
     mounts: {
@@ -28,6 +28,9 @@ systems({
       // set instances variables
       NODE_ENV: "dev",
     },
+    docker_extra: {
+      start: { Privileged: "true" },
+    }
   },
 });
 
