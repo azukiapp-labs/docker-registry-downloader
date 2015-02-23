@@ -128,20 +128,30 @@ class Syncronizer {
 
   downloadCallback(hubResult, outputPath, imageId, iProgress) {
     return function (callback) {
-      Q.spawn(function* () {
-        callback(null, yield this.dockerRegistry.prepareLoading(
-          hubResult, outputPath, imageId, iProgress));
-      }.bind(this));
+      try {
+        Q.spawn(function* () {
+          callback(null, yield this.dockerRegistry.prepareLoading(
+            hubResult, outputPath, imageId, iProgress));
+        }.bind(this));
+      } catch(err) {
+        log.error(err.stack);
+        reject(err);
+      }
     }.bind(this);
   }
 
   loadCallback(hubResult, outputPath, imageId, iProgress) {
     return function (callback) {
-      Q.spawn(function* () {
-        var result = yield this.dockerRemote.loadImage(outputPath, imageId);
-        iProgress && iProgress(1);
-        callback(null, result);
-      }.bind(this));
+      try {
+        Q.spawn(function* () {
+          var result = yield this.dockerRemote.loadImage(outputPath, imageId);
+          iProgress && iProgress(1);
+          callback(null, result);
+        }.bind(this));
+      } catch(err) {
+        log.error(err.stack);
+        reject(err);
+      }
     }.bind(this);
   }
 
