@@ -139,7 +139,7 @@ class Syncronizer {
     return function (callback) {
       Q.spawn(function* () {
         var result = yield this.dockerRemote.loadImage(outputPath, imageId);
-        iProgress(1);
+        iProgress && iProgress(1);
         callback(null, result);
       }.bind(this));
     }.bind(this);
