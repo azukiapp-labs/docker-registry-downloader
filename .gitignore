@@ -28,4 +28,4 @@ node_modules
 .lock-wscript
 
 /spec/docker-registry/output/
-/lib
+/lib.azk
