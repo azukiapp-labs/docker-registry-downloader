@@ -9,23 +9,28 @@ var _ = require('lodash');
 import FsHelper from '../fs-helper';
 var fsHelper = new FsHelper();
 
-var request_options_local = {};
-
 class DockerRegistry {
 
   constructor(request_options) {
-    request_options_local = request_options;
+    this.__request_options = request_options || {};
+  }
+
+  set request_options(value) {
+    this.__request_options = value;
   }
 
   tags(hubResult) {
+    var request_options_local = this.__request_options;
     return new Q.Promise(function (resolve, reject, notify) {
 
       var options = _.assign({
-        url: 'https://' + hubResult.endpoint + '/v1/repositories/'+ hubResult.namespace +'/' + hubResult.repository + '/'  + 'tags',
-        headers: {
-          'Authorization': 'Token ' + hubResult.token
-        }
-      }, request_options_local);
+          url: 'https://' + hubResult.endpoint + '/v1/repositories/'+ hubResult.namespace +'/' + hubResult.repository + '/'  + 'tags',
+          headers: {
+            'Authorization': 'Token ' + hubResult.token
+          }
+        },
+        request_options_local
+      );
 
       function callback(error, response, body) {
         if (!error && response.statusCode === 200) {
@@ -50,13 +55,18 @@ class DockerRegistry {
   }
 
   getImageIdByTag(hubResult, tag) {
+    var request_options_local = this.__request_options;
     return new Q.Promise(function (resolve, reject, notify) {
-      var options = {
-        url: 'https://' + hubResult.endpoint + '/v1/repositories/'+ hubResult.namespace +'/' + hubResult.repository + '/tags/' + tag,
-        headers: {
-          'Authorization': 'Token ' + hubResult.token
-        }
-      };
+
+      var options = _.assign({
+          url: 'https://' + hubResult.endpoint + '/v1/repositories/'+ hubResult.namespace +'/' + hubResult.repository + '/tags/' + tag,
+          headers: {
+            'Authorization': 'Token ' + hubResult.token
+          }
+        },
+        request_options_local
+      );
+
       function callback(error, response, body) {
         if (!error && response.statusCode === 200) {
           var result = JSON.parse(body);
@@ -65,7 +75,7 @@ class DockerRegistry {
           resolve(result);
         }
         else {
-          reject(body);
+          reject(error);
         }
       }
       request(options, callback);
@@ -73,13 +83,18 @@ class DockerRegistry {
   }
 
   ancestry(hubResult, imageId) {
+    var request_options_local = this.__request_options;
     return new Q.Promise(function (resolve, reject, notify) {
-      var options = {
-        url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/ancestry',
-        headers: {
-          'Authorization': 'Token ' + hubResult.token
-        }
-      };
+
+      var options = _.assign({
+          url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/ancestry',
+          headers: {
+            'Authorization': 'Token ' + hubResult.token
+          }
+        },
+        request_options_local
+      );
+
       function callback(error, response, body) {
         if (!error && response.statusCode === 200) {
           // [
@@ -98,7 +113,7 @@ class DockerRegistry {
           resolve(result);
         }
         else {
-          reject(body);
+          reject(error);
         }
       }
 
@@ -112,13 +127,18 @@ class DockerRegistry {
   }
 
   imageJson(hubResult, imageId) {
+    var request_options_local = this.__request_options;
     return new Q.Promise(function (resolve, reject, notify) {
-      var options = {
-        url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/json',
-        headers: {
-          'Authorization': 'Token ' + hubResult.token
-        }
-      };
+
+      var options = _.assign({
+          url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/json',
+          headers: {
+            'Authorization': 'Token ' + hubResult.token
+          }
+        },
+        request_options_local
+      );
+
       function callback(error, response, body) {
         if (!error && response.statusCode === 200) {
           // {
@@ -146,7 +166,7 @@ class DockerRegistry {
           resolve(result);
         }
         else {
-          reject(body);
+          reject(error);
         }
       }
       request(options, callback);
@@ -180,14 +200,18 @@ class DockerRegistry {
   }
 
   downloadImageGetSize(hubResult, imageId) {
+    var request_options_local = this.__request_options;
     return function (callback) {
-      var options = {
-        url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/layer',
-        headers: {
-          'Authorization': 'Token ' + hubResult.token
+
+      var options = _.assign({
+          url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/layer',
+          headers: {
+            'Authorization': 'Token ' + hubResult.token
+          },
+          method: 'GET'
         },
-        method: 'GET'
-      };
+        request_options_local
+      );
 
       var r = request(options).on('response', function(res) {
         log.debug('\n\n:: docker-registry - downloadImageGetSize headers ::');
@@ -202,15 +226,18 @@ class DockerRegistry {
   }
 
   downloadImage(hubResult, outputPath, imageId, iProgress) {
+    var request_options_local = this.__request_options;
     return new Q.Promise(function (resolve, reject, notify) {
 
-      var options = {
-        url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/layer',
-        headers: {
-          'Authorization': 'Token ' + hubResult.token
+      var options = _.assign({
+          url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/layer',
+          headers: {
+            'Authorization': 'Token ' + hubResult.token
+          },
+          method: 'GET'
         },
-        method: 'GET'
-      };
+        request_options_local
+      );
 
       // HTTP GET Request -> outputFile
       request(options)

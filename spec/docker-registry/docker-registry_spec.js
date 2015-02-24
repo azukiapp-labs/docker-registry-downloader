@@ -28,11 +28,16 @@ describe('Docker Registry API', function() {
       var namespace = 'azukiapp';
       var repository = 'azktcl';
       hubResultAzktcl = yield dockerHub.images(namespace, repository);
-      // done();
     })();
   });
 
-
+  beforeEach(function() {
+    dockerRegistry.request_options = {
+      timeout: 20000,
+      maxAttempts: 5,
+      retryDelay: 500
+    };
+  });
 
   it('should get tags from azukiapp/azktcl', function(done) {
     Q.spawn(function* () {
@@ -48,18 +53,18 @@ describe('Docker Registry API', function() {
   it('should get timeout error', function(done) {
     Q.spawn(function* () {
       try {
-        var dockerRegistry = new DockerRegistry({
-          timeout: 10,
-          maxAttempts: 2,
-          retryDelay: 5,
-        });
+
+        dockerRegistry.request_options =  {
+          timeout: 100,
+          maxAttempts: 1,
+          retryDelay: 50
+        };
+
         var result = yield dockerRegistry.tags(hubResultAzktcl);
-        chai.expect(result).to.include.keys('0.0.1');
-        chai.expect(result).to.include.keys('0.0.2');
-        done();
+        done('should get error: ETIMEDOUT');
       }
       catch(err) {
-        console.log('\n>>------------\n err:', err, '\n<<------------\n');
+        chai.expect(err.code).to.equal('ETIMEDOUT');
         done();
       }
     });
@@ -72,7 +77,11 @@ describe('Docker Registry API', function() {
       var repository = 'node';
       var hubResultNode = yield dockerHub.images(namespace, repository);
 
-
+      dockerRegistry.request_options = {
+        timeout: 20000,
+        maxAttempts: 5,
+        retryDelay: 500
+      };
       var result = yield dockerRegistry.tags(hubResultNode);
 
       chai.expect(result).to.include.keys('0.8');
