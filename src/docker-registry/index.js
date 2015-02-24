@@ -1,25 +1,34 @@
-var request = require('request');
+var request = require('requestretry');
 var Q  = require('q');
 var log = require('../helpers/logger');
 var fs = require('fs');
 var path = require('path');
 var prettyBytes = require('pretty-bytes');
+var _ = require('lodash');
 
 import FsHelper from '../fs-helper';
 var fsHelper = new FsHelper();
 
+var request_options_local = {};
+
 class DockerRegistry {
+
+  constructor(request_options) {
+    request_options_local = request_options;
+  }
 
   tags(hubResult) {
     return new Q.Promise(function (resolve, reject, notify) {
-      var options = {
+
+      var options = _.assign({
         url: 'https://' + hubResult.endpoint + '/v1/repositories/'+ hubResult.namespace +'/' + hubResult.repository + '/'  + 'tags',
         headers: {
           'Authorization': 'Token ' + hubResult.token
         }
-      };
+      }, request_options_local);
+
       function callback(error, response, body) {
-        if (!error && response.statusCode == 200) {
+        if (!error && response.statusCode === 200) {
           // ---------------------------------------
           // tags body result
           // ---------------------------------------
@@ -33,7 +42,7 @@ class DockerRegistry {
           resolve(result);
         }
         else {
-          reject(body);
+          reject(error);
         }
       }
       request(options, callback);
@@ -49,7 +58,7 @@ class DockerRegistry {
         }
       };
       function callback(error, response, body) {
-        if (!error && response.statusCode == 200) {
+        if (!error && response.statusCode === 200) {
           var result = JSON.parse(body);
           log.debug('\n\n:: docker-registry - getImageIdByTag ::');
           log.debug(result);
@@ -72,7 +81,7 @@ class DockerRegistry {
         }
       };
       function callback(error, response, body) {
-        if (!error && response.statusCode == 200) {
+        if (!error && response.statusCode === 200) {
           // [
           //   "afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120",
           //   "0f3c5c8028fbab8bd93aec406dcd4dce23296894abcf2ca93bde408348926f65",
@@ -111,7 +120,7 @@ class DockerRegistry {
         }
       };
       function callback(error, response, body) {
-        if (!error && response.statusCode == 200) {
+        if (!error && response.statusCode === 200) {
           // {
           //    "id":"afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120",
           //    "parent":"0f3c5c8028fbab8bd93aec406dcd4dce23296894abcf2ca93bde408348926f65",

@@ -16,10 +16,10 @@ var fsHelper    = new FsHelper();
 
 class Syncronizer {
 
-	constructor(dockerode_options) {
-    this.dockerHub = new DockerHub();
-		this.dockerRegistry = new DockerRegistry();
-		this.dockerRemote = new DockerRemote(dockerode_options);
+  constructor(dockerode_options, request_options) {
+    this.dockerHub = new DockerHub(request_options);
+    this.dockerRegistry = new DockerRegistry(request_options);
+    this.dockerRemote = new DockerRemote(dockerode_options);
   }
 
   compare(hubResult, tag) {

@@ -7,7 +7,7 @@ var _ = require('lodash');
 
 class DockerRemote {
 
-	constructor(dockerode_options) {
+  constructor(dockerode_options) {
     if (dockerode_options && dockerode_options.dockerode_modem) {
       this.docker = new Docker();
       this.docker.modem = dockerode_options.dockerode_modem;
@@ -21,39 +21,39 @@ class DockerRemote {
     }
   }
 
- 	listActiveContainers() {
+  listActiveContainers() {
     return new Q.Promise(function (resolve, reject, notify) {
       try {
 
-				this.docker.listContainers({all: false}, function(err, containers) {
+        this.docker.listContainers({all: false}, function(err, containers) {
           log.debug('\n\n:: docker-remote - listActiveContainers ::');
           log.debug(containers);
-				  resolve(containers);
-				});
+          resolve(containers);
+        });
 
       } catch(err) {
         log.error(err);
         reject(err);
       }
     }.bind(this));
-	}
+  }
 
- 	listAllContainers() {
+  listAllContainers() {
     return new Q.Promise(function (resolve, reject, notify) {
       try {
 
-				this.docker.listContainers({all: true}, function(err, containers) {
+        this.docker.listContainers({all: true}, function(err, containers) {
           log.debug('\n\n:: docker-remote - listAllContainers ::');
           log.debug(containers);
-				  resolve(containers);
-				});
+          resolve(containers);
+        });
 
       } catch(err) {
         log.error(err);
         reject(err);
       }
     }.bind(this));
-	}
+  }
 
   listImages() {
     return new Q.Promise(function (resolve, reject, notify) {
@@ -166,7 +166,7 @@ class DockerRemote {
     }.bind(this));
   }
 
- 	searchImages(imageName) {
+  searchImages(imageName) {
     return new Q.Promise(function (resolve, reject, notify) {
       try {
 
@@ -180,13 +180,13 @@ class DockerRemote {
           return resolve(data);
         };
 
-				this.docker.searchImages({ term: imageName }, handler);
+        this.docker.searchImages({ term: imageName }, handler);
 
       } catch(err) {
         reject(err);
       }
     }.bind(this));
-	}
+  }
 
   searchImagesByTag(tagName) {
     return new Q.Promise(function (resolve, reject, notify) {

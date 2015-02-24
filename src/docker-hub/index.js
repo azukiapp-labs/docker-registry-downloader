@@ -1,10 +1,15 @@
-var request = require('request');
+var request = require('requestretry');
 var DOCKER_HUB_URL = 'https://index.docker.io';
 var Q  = require('q');
-var request = require('request');
+var request = require('requestretry');
 var log = require('../helpers/logger');
+var _ = require('lodash');
 
 class DockerHub {
+
+  constructor(request_options) {
+    this.request_options = request_options;
+  }
 
   auth(namespace, user, password) {
     return new Q.Promise(function (resolve, reject, notify) {

@@ -45,6 +45,26 @@ describe('Docker Registry API', function() {
     });
   });
 
+  it('should get timeout error', function(done) {
+    Q.spawn(function* () {
+      try {
+        var dockerRegistry = new DockerRegistry({
+          timeout: 10,
+          maxAttempts: 2,
+          retryDelay: 5,
+        });
+        var result = yield dockerRegistry.tags(hubResultAzktcl);
+        chai.expect(result).to.include.keys('0.0.1');
+        chai.expect(result).to.include.keys('0.0.2');
+        done();
+      }
+      catch(err) {
+        console.log('\n>>------------\n err:', err, '\n<<------------\n');
+        done();
+      }
+    });
+  });
+
   it('should get tags from library/node', function(done) {
     Q.spawn(function* () {
       // 1 - get endpoint and token
