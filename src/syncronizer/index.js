@@ -14,10 +14,8 @@ var os          = require('os');
 var fsHelper    = new FsHelper();
 
 Q.onerror = function(title, err) {
-  if (!title && !err) {
-    return;
-  }
-  log.error(title, err);
+  log.error('\n\n', title, err);
+  throw err;
 };
 
 class Syncronizer {
