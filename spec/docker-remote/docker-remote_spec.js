@@ -1,12 +1,10 @@
 require('source-map-support').install();
-var chai  = require('chai');
-var Q  = require('q');
-var logError = require('../../src/helpers/error-helper');
-Q.onerror = logError;
-
-// import DockerHub from '../../src/docker-hub';
-// import DockerRegistry from '../../src/docker-registry';
 import DockerRemote from '../../src/docker-remote';
+
+var chai     = require('chai');
+var Q        = require('q');
+var logError = require('../../src/helpers/error-helper');
+Q.onerror    = logError;
 
 describe('Docker Remote API', function() {
 

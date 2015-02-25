@@ -1,7 +1,7 @@
-var clc = require('cli-color');
-var repeating = require('repeating');
+var clc          = require('cli-color');
+var repeating    = require('repeating');
 var indentString = require('indent-string');
-var _ = require('lodash');
+var _            = require('lodash');
 
 module.exports = function(title, err) {
     if(!err && !title) return;

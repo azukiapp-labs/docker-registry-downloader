@@ -1,12 +1,12 @@
 require('source-map-support').install();
-// var _ = require('lodash');
-var chai  = require('chai');
-var Q  = require('q');
-var logError = require('../../src/helpers/error-helper');
-Q.onerror = logError;
-
 import Syncronizer from '../../src/syncronizer';
-import DockerHub from '../../src/docker-hub';
+import DockerHub   from '../../src/docker-hub';
+
+var chai     = require('chai');
+var Q        = require('q');
+var logError = require('../../src/helpers/error-helper');
+Q.onerror    = logError;
+
 var syncronizer = new Syncronizer();
 
 describe('Syncronizer', function() {

@@ -1,16 +1,18 @@
 require('source-map-support').install();
-var _ = require('lodash');
-var chai  = require('chai');
-var Q  = require('q');
-var log = require('../../src/helpers/logger');
-var path = require('path');
-var logError = require('../../src/helpers/error-helper');
-import FsHelper from '../../src/fs-helper';
-var fsHelper = new FsHelper();
-Q.onerror = logError;
 
-import DockerHub from '../../src/docker-hub';
+import FsHelper       from '../../src/fs-helper';
+import DockerHub      from '../../src/docker-hub';
 import DockerRegistry from '../../src/docker-registry';
+
+var _        = require('lodash');
+var chai     = require('chai');
+var Q        = require('q');
+var log      = require('../../src/helpers/logger');
+var path     = require('path');
+var logError = require('../../src/helpers/error-helper');
+var fsHelper = new FsHelper();
+Q.onerror    = logError;
+
 
 describe('Docker Registry API', function() {
 

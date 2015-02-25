@@ -1,14 +1,23 @@
 require('source-map-support').install();
-var chai  = require('chai');
-var Q  = require('q');
-var log = require('../../src/helpers/logger');
-var logError = require('../../src/helpers/error-helper');
 import DockerHub from '../../src/docker-hub';
-Q.onerror = logError;
+
+var chai     = require('chai');
+var Q        = require('q');
+var log      = require('../../src/helpers/logger');
+var logError = require('../../src/helpers/error-helper');
+Q.onerror    = logError;
 
 describe('Docker Hub API', function() {
 
   var dockerHub = new DockerHub();
+
+  beforeEach(function() {
+    dockerHub.request_options = {
+      timeout: 20000,
+      maxAttempts: 5,
+      retryDelay: 500
+    };
+  });
 
   it('should authenticate the user and get the cookies', function(done) {
     //

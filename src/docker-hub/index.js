@@ -1,14 +1,18 @@
-var request = require('requestretry');
+var request        = require('requestretry');
 var DOCKER_HUB_URL = 'https://index.docker.io';
-var Q  = require('q');
-var request = require('requestretry');
-var log = require('../helpers/logger');
-var _ = require('lodash');
+var Q              = require('q');
+var request        = require('requestretry');
+var log            = require('../helpers/logger');
+var _              = require('lodash');
 
 class DockerHub {
 
   constructor(request_options) {
-    this.request_options = request_options;
+    this.__request_options = request_options || {};
+  }
+
+  set request_options(value) {
+    this.__request_options = value;
   }
 
   auth(namespace, user, password) {
@@ -28,13 +32,16 @@ class DockerHub {
   }
 
   images(namespace, repository) {
+    var request_options_local = this.__request_options;
     return new Q.Promise(function (resolve, reject, notify) {
-      var options = {
-        url: DOCKER_HUB_URL + '/v1/repositories/'+ namespace +'/'+ repository +'/images',
-        headers: {
-          'X-Docker-Token': 'true'
-        }
-      };
+      var options = _.assign({
+          url: DOCKER_HUB_URL + '/v1/repositories/'+ namespace +'/'+ repository +'/images',
+          headers: {
+            'X-Docker-Token': 'true'
+          }
+        },
+        request_options_local
+      );
       function callback(error, response, body) {
         if (!error && response.statusCode == 200) {
 
@@ -54,7 +61,6 @@ class DockerHub {
           resolve(result);
         }
         else {
-          log.error(response.statusCode);
           reject(error);
         }
       }
@@ -63,13 +69,16 @@ class DockerHub {
   }
 
   search(query) {
+    var request_options_local = this.__request_options;
     return new Q.Promise(function (resolve, reject, notify) {
-      var options = {
-        url: DOCKER_HUB_URL + '/v1/search',
-        qs: {
-          q: query
-        }
-      };
+      var options = _.assign({
+          url: DOCKER_HUB_URL + '/v1/search',
+          qs: {
+            q: query
+          }
+        },
+        request_options_local
+      );
       function callback(error, response, body) {
         if (!error && response.statusCode == 200) {
           // ---------------------------------------

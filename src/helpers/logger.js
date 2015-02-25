@@ -1,5 +1,6 @@
 var winston = require('winston');
-var log = new winston.Logger();
+var log     = new winston.Logger();
+
 log.add(winston.transports.Console, {
   handleExceptions: true,
   colorize: true,

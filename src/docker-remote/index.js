@@ -1,9 +1,9 @@
 var Docker = require('dockerode');
 var fs     = require('fs');
-var Q  = require('q');
-var log = require('../helpers/logger');
-var path = require('path');
-var _ = require('lodash');
+var Q      = require('q');
+var log    = require('../helpers/logger');
+var path   = require('path');
+var _      = require('lodash');
 
 class DockerRemote {
 

@@ -1,6 +1,6 @@
-var Q  = require('q');
-var fs = require('fs');
-var FS = require("q-io/fs");
+var Q     = require('q');
+var fs    = require('fs');
+var FS    = require("q-io/fs");
 var rmdir = require('rimraf');
 
 class FsHelper {

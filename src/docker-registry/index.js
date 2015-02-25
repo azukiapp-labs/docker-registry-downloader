@@ -1,12 +1,13 @@
-var request = require('requestretry');
-var Q  = require('q');
-var log = require('../helpers/logger');
-var fs = require('fs');
-var path = require('path');
-var prettyBytes = require('pretty-bytes');
-var _ = require('lodash');
-
 import FsHelper from '../fs-helper';
+
+var request     = require('requestretry');
+var Q           = require('q');
+var log         = require('../helpers/logger');
+var fs          = require('fs');
+var path        = require('path');
+var prettyBytes = require('pretty-bytes');
+var _           = require('lodash');
+
 var fsHelper = new FsHelper();
 
 class DockerRegistry {
