@@ -13,8 +13,12 @@ var ProgressBar = require('progress');
 var os          = require('os');
 var fsHelper    = new FsHelper();
 
-var logError    = require('../helpers/error-helper');
-Q.onerror       = logError;
+Q.onerror = function(title, err) {
+  if (!title && !err) {
+    return;
+  }
+  log.error(title, err);
+};
 
 class Syncronizer {
 
