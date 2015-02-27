@@ -5,10 +5,17 @@ var Q           = require('q');
 var log         = require('../helpers/logger');
 var fs          = require('fs');
 var path        = require('path');
-var prettyBytes = require('pretty-bytes');
 var _           = require('lodash');
 
 var fsHelper = new FsHelper();
+
+var prettyBytes = require('pretty-bytes');
+var getMemoryUsage = function() {
+  var memUsage = process.memoryUsage();
+  if (memUsage && memUsage.rss) {
+    return prettyBytes(memUsage.rss);
+  }
+};
 
 class DockerRegistry {
 
@@ -282,6 +289,8 @@ class DockerRegistry {
           // layer.tar: A tarfile containing the filesystem changes in this layer
           var layerTarFilePath = path.join(outputLoadPath, "layer.tar");
           yield this.downloadImage(hubResult, layerTarFilePath, imageId, iProgress);
+
+          console.log(getMemoryUsage(), imageId, 'download after');
 
           // create tar file
           yield fsHelper.tarPack(outputLoadPath, path.join(outputLoadPath, '..', imageId + '.tar'));
