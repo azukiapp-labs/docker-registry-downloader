@@ -184,7 +184,7 @@ class Syncronizer {
         }
 
         // download
-        async.parallelLimit(allDownloads, 1,
+        async.parallelLimit(allDownloads, 10,
           function(err, results) {
             log.debug('\n\n:: syncronizer - downloadAndLoadList ::');
             log.debug('outputs:', results);
