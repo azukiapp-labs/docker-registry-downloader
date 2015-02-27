@@ -237,33 +237,46 @@ class DockerRegistry {
     var request_options_local = this.__request_options;
     return new Q.Promise(function (resolve, reject, notify) {
 
-      var options = _.assign({
-          url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/layer',
-          headers: {
-            'Authorization': 'Token ' + hubResult.token
-          },
-          method: 'GET'
-        },
-        request_options_local
-      );
+      // var options = _.assign({
+      //     url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/layer',
+      //     headers: {
+      //       'Authorization': 'Token ' + hubResult.token
+      //     },
+      //     method: 'GET',
+      //     'o': outputPath
+      //   },
+      //   {}//request_options_local
+      // );
 
-      // HTTP GET Request -> outputFile
-      request(options)
-        .on('response', function(res) {
-          log.debug('\n\n:: docker-registry - downloadImage headers ::');
-          log.debug(res.headers);
+      var spawn = require('child_process').spawn,
+          curl_options = [
+            '-v',
+            '-o', outputPath,
+            '-i',
+            '--location-trusted',
+            // '-I',
+            '-X', 'GET',
+            '-H', 'Authorization: Token ' + hubResult.token,
+            'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/layer'
+          ],
+          curl = spawn('curl', curl_options);
 
-          res.on('data', function (chunk) {
-            if (iProgress) {
-              iProgress(chunk.length);
-            }
-          });
+      // console.log('curl', curl_options.join(' '))
+      // process.exit(0);
+      // curl.stdout.on('data', function (data) {
+      //   console.log(data.toString());
+      // });
+      // curl.stderr.on('data', function (data) {
+      //   console.log(data.toString());
+      // });
 
-          res.on('end', function () {
-            resolve(outputPath);
-          });
-        })
-        .pipe(fs.createWriteStream(outputPath));
+
+      curl.on('exit', function(code) {
+        if (code !== 0) {
+            console.log('Failed: ' + code);
+        }
+        resolve(outputPath);
+      });
 
     });
   }
