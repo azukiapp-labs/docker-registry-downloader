@@ -7,11 +7,18 @@ var path        = require('path');
 var Q           = require('q');
 var log         = require('../helpers/logger');
 var _           = require('lodash');
-var prettyBytes = require('pretty-bytes');
 var async       = require('async');
 var ProgressBar = require('progress');
 var os          = require('os');
 var fsHelper    = new FsHelper();
+
+var prettyBytes = require('pretty-bytes');
+var getMemoryUsage = function() {
+  var memUsage = process.memoryUsage();
+  if (memUsage && memUsage.rss) {
+    return prettyBytes(memUsage.rss);
+  }
+};
 
 Q.onerror = function(title, err) {
   log.error('\n\n', title, err);
@@ -148,7 +155,10 @@ class Syncronizer {
     return function (callback) {
       try {
         Q.spawn(function* () {
+
           var result = yield this.dockerRemote.loadImage(outputPath, imageId);
+          console.log(getMemoryUsage(), imageId, 'loading after');
+
           iProgress && iProgress(1);
           callback(null, result);
         }.bind(this));
