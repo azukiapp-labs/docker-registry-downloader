@@ -237,33 +237,57 @@ class DockerRegistry {
     var request_options_local = this.__request_options;
     return new Q.Promise(function (resolve, reject, notify) {
 
-      var options = _.assign({
-          url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/layer',
-          headers: {
-            'Authorization': 'Token ' + hubResult.token
-          },
-          method: 'GET'
-        },
-        request_options_local
-      );
+      var file = fs.createWriteStream(outputPath);
 
-      // HTTP GET Request -> outputFile
-      request(options)
-        .on('response', function(res) {
-          log.debug('\n\n:: docker-registry - downloadImage headers ::');
-          log.debug(res.headers);
+      var url = require('url');
+      var https = require('https');
 
-          res.on('data', function (chunk) {
-            if (iProgress) {
-              iProgress(chunk.length);
-            }
-          });
+      var file_url = 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/layer';
 
-          res.on('end', function () {
-            resolve(outputPath);
-          });
-        })
-        .pipe(fs.createWriteStream(outputPath));
+      var options = {
+          host    : url.parse(file_url).host,
+          port    : 443,
+          path    : url.parse(file_url).pathname,
+          headers : {'Authorization': 'Token ' + hubResult.token }
+      };
+
+      https.get(options, function(res) {
+
+        res.on('data', function(data) {
+           // file.write(data);
+          // console.log(data.toString());
+
+          if (res.statusCode === 302) {
+            // console.log('\n>>------------\n res.headers.location:', res.headers.location, '\n<<------------\n');
+
+            options = {
+                host    : url.parse(res.headers.location).host,
+                port    : 443,
+                path    : url.parse(res.headers.location).pathname,
+                headers : {'Authorization': 'Token ' + hubResult.token }
+            };
+
+            https.get(res.headers.location, function(res) {
+              res.on('data', function(data) {
+                file.write(data);
+                // console.log(data.toString());
+                // console.log('\n>>------------\n arguments:', arguments, '\n<<------------\n');
+              }).on('end', function() {
+                // file.end();
+                resolve(outputPath);
+                // console.log('\n>>------------\n arguments:', arguments, '\n<<------------\n');
+                // process.exit(0);
+              });
+            });
+
+          }
+
+        })//.on('end', function() {
+        //   file.end();
+        //   resolve(outputPath);
+        // });
+      });
+
 
     });
   }
@@ -293,7 +317,7 @@ class DockerRegistry {
           console.log(getMemoryUsage(), imageId, 'download after');
 
           // create tar file
-          yield fsHelper.tarPack(outputLoadPath, path.join(outputLoadPath, '..', imageId + '.tar'));
+          // yield fsHelper.tarPack(outputLoadPath, path.join(outputLoadPath, '..', imageId + '.tar'));
 
           // remove folder
           yield fsHelper.removeDirRecursive(outputLoadPath);
