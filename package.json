@@ -31,6 +31,7 @@
     "cli-color": "^0.3.2",
     "curlrequest": "^0.5.1",
     "dockerode": "^2.0.4",
+    "hyperquest": "^1.0.1",
     "indent-string": "^1.2.0",
     "lodash": "^2.4.1",
     "pretty-bytes": "^1.0.2",

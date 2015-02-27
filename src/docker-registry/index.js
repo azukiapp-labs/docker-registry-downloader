@@ -249,33 +249,31 @@ class DockerRegistry {
       // );
 
       var spawn = require('child_process').spawn,
-          curl_options = [
+          axel_options = [
             '-v',
             '-o', outputPath,
-            '-i',
-            '--location-trusted',
-            // '-I',
-            '-X', 'GET',
+            '-n', '4',
             '-H', 'Authorization: Token ' + hubResult.token,
             'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/layer'
           ],
-          curl = spawn('curl', curl_options);
+          axel = spawn('axel', axel_options);
 
-      // console.log('curl', curl_options.join(' '))
+      // console.log('axel', axel_options.join(' '))
       // process.exit(0);
-      // curl.stdout.on('data', function (data) {
-      //   console.log(data.toString());
-      // });
-      // curl.stderr.on('data', function (data) {
-      //   console.log(data.toString());
-      // });
+      axel.stdout.on('data', function (data) {
+        console.log(data.toString());
+      });
+      axel.stderr.on('data', function (data) {
+        console.log(data.toString());
+      });
 
 
-      curl.on('exit', function(code) {
+      axel.on('exit', function(code) {
         if (code !== 0) {
             console.log('Failed: ' + code);
         }
         resolve(outputPath);
+        process.exit(0);
       });
 
     });
