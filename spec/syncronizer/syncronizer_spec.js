@@ -54,12 +54,11 @@ describe('Syncronizer', function() {
       var hubResult  = yield dockerHub.images(namespace, repository);
 
       var tag = '0.0.1';
-      var outputPath = __dirname + '/../../../spec/docker-registry/output';
 
       // <><> MOCK dockerRemote.anscestors()
       var original = syncronizer.dockerRemote.anscestors;
       syncronizer.dockerRemote.anscestors = function() {
-        return new Q.Promise(function (resolve, reject, notify) {
+        return new Q.Promise(function (resolve/*, reject, notify*/) {
           resolve(require('../stubs/anscestors').simulate_old_azktcl_0_0_1);
         });
       };
@@ -201,4 +200,79 @@ describe('Syncronizer', function() {
     });
   });
 
+  describe('compare repos', function() {
+
+    it('should get total size', function(done) {
+      this.timeout(15000);
+
+      Q.spawn(function* () {
+
+        var namespace = 'saitodisse';
+        var repository = '10mblayers';
+        var tag = 'latest';
+
+        var dockerHub = new DockerHub();
+        var hubResult = yield dockerHub.images(namespace, repository);
+
+        var layers_to_download = yield syncronizer.getTotalSize(hubResult, tag);
+
+        chai.expect(layers_to_download.layersCount).to.not.be.undefined();
+        chai.expect(layers_to_download.totalSize).to.not.be.undefined();
+
+        done();
+      });
+    });
+
+    it('should get local total size', function(done) {
+      this.timeout(150000);
+
+
+        var getSize = function() {
+          Q.spawn(function* () {
+
+            var total_local_size = yield syncronizer.getTotalLocalSize({
+              namespace : 'saitodisse',
+              repository: '10mblayers'
+            }, 'latest');
+
+            var prettyBytes = require('pretty-bytes');
+            console.log('\n>>---------\n prettyBytes(total_local_size):', prettyBytes(total_local_size), '\n>>---------\n');
+
+            return total_local_size;
+          });
+        };
+
+        setInterval(getSize, 5000);
+
+        // chai.expect(total_local_size).to.not.be.undefined();
+        done();
+    });
+
+    it('should get null when check an invalid local layer', function(done) {
+      Q.spawn(function* () {
+        var result = yield syncronizer.checkLocalLayer('invalid_layer_id');
+        chai.expect(result).to.be.null();
+        done();
+      });
+    });
+
+    it('should get diff from registry and local layers', function(done) {
+      Q.spawn(function* () {
+
+        var namespace = 'saitodisse';
+        var repository = '10mblayers';
+        var tag = 'latest';
+
+        var dockerHub = new DockerHub();
+        var hubResult = yield dockerHub.images(namespace, repository);
+
+        var result = yield syncronizer.getLayersDiff(hubResult, tag);
+        console.log('\n>>---------\n result:', result, '\n>>---------\n');
+
+        chai.expect(result).to.not.be.undefined();
+        done();
+      });
+    });
+
+  });
 });

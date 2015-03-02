@@ -22,7 +22,7 @@ class DockerRemote {
   }
 
   listActiveContainers() {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
 
         this.docker.listContainers({all: false}, function(err, containers) {
@@ -39,7 +39,7 @@ class DockerRemote {
   }
 
   listAllContainers() {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
 
         this.docker.listContainers({all: true}, function(err, containers) {
@@ -56,7 +56,7 @@ class DockerRemote {
   }
 
   listImages() {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
 
         this.docker.listImages(function(err, data) {
@@ -73,7 +73,7 @@ class DockerRemote {
   }
 
   getImage(imageId) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
 
         var image = this.docker.getImage(imageId);
@@ -89,7 +89,7 @@ class DockerRemote {
   }
 
   inspectImage(image) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
 
         var handler = function (err, data) {
@@ -115,7 +115,7 @@ class DockerRemote {
   }
 
   removeImage(imageId) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         Q.spawn(function* () {
 
@@ -139,35 +139,10 @@ class DockerRemote {
         reject(err);
       }
     }.bind(this));
-
-
-    return new Q.Promise(function (resolve, reject, notify) {
-      try {
-
-        var image = this.getImage(imageId);
-        log.debug('\n\n:: docker-remote - removeImage ::');
-        log.debug(image);
-
-        var handler = function (err, data) {
-          if (err) {
-            return reject(err);
-          }
-
-          log.debug('\n\n:: docker-remote - image inspect ::');
-          log.debug(data);
-          return resolve(data);
-        };
-
-        image.inspect(handler);
-
-      } catch(err) {
-        reject(err);
-      }
-    }.bind(this));
   }
 
   searchImages(imageName) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
 
         var handler = function (err, data) {
@@ -189,7 +164,7 @@ class DockerRemote {
   }
 
   searchImagesByTag(tagName) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         Q.spawn(function* () {
 
@@ -215,7 +190,7 @@ class DockerRemote {
   }
 
   getParent(imageId) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         Q.spawn(function* () {
 
@@ -245,7 +220,7 @@ class DockerRemote {
   }
 
   anscestors(firstImageId) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         Q.spawn(function* () {
           var currentImageId = firstImageId;
@@ -278,7 +253,7 @@ class DockerRemote {
   }
 
   loadImage(outputPath, imageId) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
 
         var outputLoadPath = path.join(outputPath, imageId + '.tar');
@@ -301,7 +276,7 @@ class DockerRemote {
   }
 
   setImageTag(namespace, repository, imageId, tagName) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         Q.spawn(function* () {
           var image = yield this.docker.getImage(imageId);

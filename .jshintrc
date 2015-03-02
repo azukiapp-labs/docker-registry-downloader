@@ -10,7 +10,6 @@
         "beforeEach",
         "afterEach",
         "describe",
-        "it",
-        "_"
+        "it"
     ]
 }

@@ -66,7 +66,13 @@ if (!outputFolder) {
 }
 
 // get token from DOCKER HUB API
-dockerHub.images(namespace, repository).then(function(hubResult) {
+dockerHub.images(namespace, repository)
+.then(function(hubResult) {
   // sync registry layer with local layers
   return syncronizer.sync(hubResult, tag, outputFolder, forceOverwrite);
+})
+.catch(function(err) {
+  console.log(err);
+  console.log(err.stack);
+  process.exit(1);
 });

@@ -27,13 +27,14 @@ class Syncronizer {
   }
 
   compare(hubResult, tag) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         Q.spawn(function* () {
           // get endpoint and token from docker hub
           var imageId = yield this.dockerRegistry.getImageIdByTag(hubResult, tag);
 
           var registryAncestors = yield this.dockerRegistry.ancestry(hubResult, imageId);
+          log.info('  registry layers count:', registryAncestors.length);
 
           // get from local docker
           var fullTagName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
@@ -42,15 +43,18 @@ class Syncronizer {
           }
           var imagesFound = yield this.dockerRemote.searchImagesByTag(fullTagName);
 
-          if (!imagesFound || imagesFound.length === 0) {
+           if (!imagesFound || imagesFound.length === 0) {
             //throw new Error('no local images found for ' + fullTagName);
             log.debug('\n\n:: syncronizer - compare - no local image for '+ fullTagName +' ::');
             log.debug(registryAncestors);
+            log.info('  local layers found   :', 0);
             return resolve(registryAncestors);
           }
 
           var localAncestors = yield this.dockerRemote.anscestors(imagesFound[0].Id);
+          log.info('    local layers found:', localAncestors.length);
           var localImageInspectors = _.pluck(localAncestors, 'imageInspect');
+
           var localIds = _.pluck(localImageInspectors, 'Id');
           var diff = _.difference(registryAncestors, localIds);
           log.debug('\n\n:: syncronizer - compare registryAncestors ::');
@@ -59,6 +63,7 @@ class Syncronizer {
           log.debug(localIds);
           log.debug('\n\n:: syncronizer - compare diff ::');
           log.debug(diff);
+          log.info('    diff images:', diff.length);
           return resolve(diff);
 
         }.bind(this));
@@ -71,7 +76,7 @@ class Syncronizer {
   }
 
   getSizes(hubResult, layersList) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         var allChecks = [];
 
@@ -103,7 +108,7 @@ class Syncronizer {
   }
 
   checkDownloadedFiles(layersList, outputPath) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         Q.spawn(function* () {
 
@@ -139,7 +144,6 @@ class Syncronizer {
         }.bind(this));
       } catch(err) {
         log.error(err.stack);
-        reject(err);
       }
     }.bind(this);
   }
@@ -149,12 +153,13 @@ class Syncronizer {
       try {
         Q.spawn(function* () {
           var result = yield this.dockerRemote.loadImage(outputPath, imageId);
-          iProgress && iProgress(1);
+          if (iProgress) {
+            iProgress(1);
+          }
           callback(null, result);
         }.bind(this));
       } catch(err) {
         log.error(err.stack);
-        reject(err);
       }
     }.bind(this);
   }
@@ -164,7 +169,7 @@ class Syncronizer {
   // outputPath  : local folder to save
   // imageIdList : all IDs to download
   downloadList(hubResult, outputPath, imageIdList, iProgress) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         var allDownloads = [];
 
@@ -197,7 +202,7 @@ class Syncronizer {
     //   outputPath  : local folder to save
     //   imageIdList : all IDs to download
     // }
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         var allLoads = [];
 
@@ -224,7 +229,7 @@ class Syncronizer {
   }
 
   setTags(hubResult) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         Q.spawn(function* () {
 
@@ -258,7 +263,7 @@ class Syncronizer {
 
   sync(hubResult, tag, outputPath, forceOverwrite) {
     var progressMessage, bar, iProgress;
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         Q.spawn(function* () {
 
@@ -356,6 +361,148 @@ class Syncronizer {
   removeTempDir(dir) {
     return fsHelper.removeDirRecursive(dir);
   }
+
+  getTotalSize(hubResult, tag) {
+    return new Q.Promise(function (resolve, reject) {
+      try {
+        Q.spawn(function* () {
+
+          var imageFullName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
+          log.info('comparing docker registry with local images...');
+          // compare all local layers with registry layers
+          var totalLayersToLoad = yield this.compare(hubResult, tag);
+
+          // calculate total size to download
+          log.info('getting total size', imageFullName);
+          var totalSize = yield this.getSizes(hubResult, totalLayersToLoad);
+          if (totalSize > 0 && totalLayersToLoad.length > 0) {
+            log.info('  layers to download: ' + totalLayersToLoad.length);
+            log.info('  total layers size : ' + prettyBytes(totalSize));
+          }
+
+          resolve({
+            layersCount: totalLayersToLoad.length,
+            totalSize  : totalSize
+          });
+
+        }.bind(this));
+      } catch(err) {
+        log.error(err.stack);
+        reject(err);
+      }
+    }.bind(this));
+  }
+
+  getTotalLocalSize(hubResult, tag) {
+    return new Q.Promise(function (resolve, reject) {
+      try {
+        Q.spawn(function* () {
+
+          // get from local docker
+          var fullTagName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
+          if (hubResult.namespace === 'library') {
+            fullTagName = hubResult.repository + ':' + tag;
+          }
+          var imagesFound = yield this.dockerRemote.searchImagesByTag(fullTagName);
+          var localAncestors = yield this.dockerRemote.anscestors(imagesFound[0].Id);
+
+          var total_local_size = _.reduce(localAncestors, function(sum, anscestor) {
+            return sum + anscestor.imageInspect.Size;
+          }, 0);
+
+          log.debug('\n\n:: syncronizer - getTotalLocalSize '+ fullTagName +' ::');
+          log.debug(prettyBytes(total_local_size));
+
+          resolve({
+            total_local_size : total_local_size,
+            localAncestors   : localAncestors,
+            imagesFound      : imagesFound,
+          });
+
+        }.bind(this));
+      } catch(err) {
+        log.error(err.stack);
+        reject(err);
+      }
+    }.bind(this));
+  }
+
+
+  getAllLayersFromRegistry(hubResult, tag) {
+    return new Q.Promise(function (resolve, reject) {
+      try {
+        Q.spawn(function* () {
+
+          // get endpoint and token from docker hub
+          var imageId = yield this.dockerRegistry.getImageIdByTag(hubResult, tag);
+          var registryAncestors = yield this.dockerRegistry.ancestry(hubResult, imageId);
+
+          resolve({
+            hub_result      : hubResult,
+            image_id        : imageId,
+            registry_layers : registryAncestors
+          });
+
+        }.bind(this));
+      } catch(err) {
+        log.error(err.stack);
+        reject(err);
+      }
+    }.bind(this));
+  }
+
+  checkLocalLayer(image_id) {
+    return new Q.Promise(function (resolve, reject) {
+      try {
+        Q.spawn(function* () {
+
+          var image = yield this.dockerRemote.getImage(image_id);
+          var result = yield this.dockerRemote.inspectImage(image);
+          resolve(result);
+
+        }.bind(this));
+      } catch(err) {
+        log.error(err.stack);
+        reject(err);
+      }
+    }.bind(this));
+  }
+
+  getLayersDiff(hubResult, tag) {
+    return new Q.Promise(function (resolve, reject) {
+      try {
+        Q.spawn(function* () {
+
+          var registry_result = yield this.getAllLayersFromRegistry(hubResult, tag);
+          var registry_layers = registry_result.registry_layers;
+
+          var new_layers = _.filter(registry_layers, function(layer_info) {
+            console.log('registry:', layer_info);
+            var local_layer = this.checkLocalLayer(layer_info);
+
+            if (local_layer !== null) {
+              console.log('exists locally');
+              return false;
+            } else {
+              console.log('will be downloaded');
+              return true;
+            }
+          }, this);
+
+          resolve(new_layers);
+
+        }.bind(this));
+      } catch(err) {
+        log.error(err.stack);
+        reject(err);
+      }
+    }.bind(this));
+  }
+
+
+  // showAllLayers
+
+
 
 }
 
