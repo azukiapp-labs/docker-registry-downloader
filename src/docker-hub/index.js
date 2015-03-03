@@ -11,38 +11,41 @@ class DockerHub {
     this.__request_options = request_options || {};
   }
 
+  get request_options() {
+    return this.__request_options;
+  }
+
   set request_options(value) {
     this.__request_options = value;
   }
 
-  auth(namespace, user, password) {
-    return new Q.Promise(function (resolve, reject, notify) {
-      var url = DOCKER_HUB_URL + '/v1/repositories/'+ namespace +'/auth';
-      request.get(url).auth(user, password, false, function (error, response, body) {
+  auth (namespace, user, password) {
+    return new Q.Promise(function (resolve, reject) {
+      var url = DOCKER_HUB_URL + '/v1/repositories/' + namespace + '/auth';
+      request.get(url).auth(user, password, false, function (error, response/*, body*/) {
         if (!error && response.statusCode == 200) {
           log.debug('\n\n:: docker-hub - auth ::');
           log.debug(response.headers);
           resolve(response.headers['set-cookie']);
-        }
-        else {
+        } else {
           reject(error);
         }
       });
     });
   }
 
-  images(namespace, repository) {
+  images (namespace, repository) {
     var request_options_local = this.__request_options;
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       var options = _.assign({
-          url: DOCKER_HUB_URL + '/v1/repositories/'+ namespace +'/'+ repository +'/images',
+          url: DOCKER_HUB_URL + '/v1/repositories/' + namespace + '/' + repository + '/images',
           headers: {
             'X-Docker-Token': 'true'
           }
         },
         request_options_local
       );
-      function callback(error, response, body) {
+      function callback(error, response/*, body*/) {
         if (!error && response.statusCode == 200) {
 
           // ---------------------------------------
@@ -59,8 +62,7 @@ class DockerHub {
           };
           log.debug(result);
           resolve(result);
-        }
-        else {
+        } else {
           reject(error);
         }
       }
@@ -68,9 +70,9 @@ class DockerHub {
     });
   }
 
-  search(query) {
+  search (query) {
     var request_options_local = this.__request_options;
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       var options = _.assign({
           url: DOCKER_HUB_URL + '/v1/search',
           qs: {
@@ -102,8 +104,7 @@ class DockerHub {
           log.debug('\n\n:: docker-hub - search ::');
           log.debug(result);
           resolve(result);
-        }
-        else {
+        } else {
           reject(error);
         }
       }
@@ -115,5 +116,5 @@ class DockerHub {
 
 module.exports = {
   __esModule: true,
-  get default() { return DockerHub }
+  get default() { return DockerHub; }
 };

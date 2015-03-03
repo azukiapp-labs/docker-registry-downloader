@@ -16,16 +16,21 @@ class DockerRegistry {
     this.__request_options = request_options || {};
   }
 
+  get request_options() {
+    return this.__request_options;
+  }
+
   set request_options(value) {
     this.__request_options = value;
   }
 
   tags(hubResult) {
     var request_options_local = this.__request_options;
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
 
       var options = _.assign({
-          url: 'https://' + hubResult.endpoint + '/v1/repositories/'+ hubResult.namespace +'/' + hubResult.repository + '/'  + 'tags',
+          url: 'https://' + hubResult.endpoint + '/v1/repositories/' +
+                hubResult.namespace + '/' + hubResult.repository + '/'  + 'tags',
           headers: {
             'Authorization': 'Token ' + hubResult.token
           }
@@ -46,8 +51,7 @@ class DockerRegistry {
           log.debug('\n\n:: docker-registry - tags ::');
           log.debug(result);
           resolve(result);
-        }
-        else {
+        } else {
           reject(error);
         }
       }
@@ -57,10 +61,11 @@ class DockerRegistry {
 
   getImageIdByTag(hubResult, tag) {
     var request_options_local = this.__request_options;
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
 
       var options = _.assign({
-          url: 'https://' + hubResult.endpoint + '/v1/repositories/'+ hubResult.namespace +'/' + hubResult.repository + '/tags/' + tag,
+          url: 'https://' + hubResult.endpoint + '/v1/repositories/' + hubResult.namespace +
+               '/' + hubResult.repository + '/tags/' + tag,
           headers: {
             'Authorization': 'Token ' + hubResult.token
           }
@@ -74,8 +79,7 @@ class DockerRegistry {
           log.debug('\n\n:: docker-registry - getImageIdByTag ::');
           log.debug(result);
           resolve(result);
-        }
-        else {
+        } else {
           reject(error);
         }
       }
@@ -85,10 +89,10 @@ class DockerRegistry {
 
   ancestry(hubResult, imageId) {
     var request_options_local = this.__request_options;
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
 
       var options = _.assign({
-          url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/ancestry',
+          url: 'https://' + hubResult.endpoint + '/v1/images/' + imageId + '/ancestry',
           headers: {
             'Authorization': 'Token ' + hubResult.token
           }
@@ -112,16 +116,15 @@ class DockerRegistry {
           log.debug('\n\n:: docker-registry - ancestry ::');
           log.debug(result);
           resolve(result);
-        }
-        else {
+        } else {
           reject(error);
         }
       }
 
-      try{
+      try {
         request(options, callback);
       }
-      catch(err) {
+      catch (err) {
         reject(err);
       }
     });
@@ -129,10 +132,10 @@ class DockerRegistry {
 
   imageJson(hubResult, imageId) {
     var request_options_local = this.__request_options;
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
 
       var options = _.assign({
-          url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/json',
+          url: 'https://' + hubResult.endpoint + '/v1/images/' + imageId + '/json',
           headers: {
             'Authorization': 'Token ' + hubResult.token
           }
@@ -165,8 +168,7 @@ class DockerRegistry {
           log.debug('\n\n:: docker-registry - imageJson ::');
           log.debug(result);
           resolve(result);
-        }
-        else {
+        } else {
           reject(error);
         }
       }
@@ -175,7 +177,7 @@ class DockerRegistry {
   }
 
   allAnscestorByTag(hubResult, tag) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         Q.spawn(function* () {
           log.debug('\n\n:: docker-registry - allAnscestorByTag ::');
@@ -194,7 +196,7 @@ class DockerRegistry {
           resolve(anscestors);
 
         }.bind(this));
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     }.bind(this));
@@ -205,7 +207,7 @@ class DockerRegistry {
     return function (callback) {
 
       var options = _.assign({
-          url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/layer',
+          url: 'https://' + hubResult.endpoint + '/v1/images/' + imageId + '/layer',
           headers: {
             'Authorization': 'Token ' + hubResult.token
           },
@@ -228,10 +230,10 @@ class DockerRegistry {
 
   downloadImage(hubResult, outputPath, imageId, iProgress) {
     var request_options_local = this.__request_options;
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve/*, reject*/) {
 
       var options = _.assign({
-          url: 'https://' + hubResult.endpoint + '/v1/images/'+ imageId +'/layer',
+          url: 'https://' + hubResult.endpoint + '/v1/images/' + imageId + '/layer',
           headers: {
             'Authorization': 'Token ' + hubResult.token
           },
@@ -263,7 +265,7 @@ class DockerRegistry {
 
   // http://docs.docker.com/reference/api/docker_remote_api_v1.16/#load-a-tarball-with-a-set-of-images-and-tags-into-docker
   prepareLoading(hubResult, outputPath, imageId, iProgress) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         Q.spawn(function* () {
           // An image tarball contains one directory per image layer (named using its long ID)
@@ -292,7 +294,7 @@ class DockerRegistry {
           resolve(outputLoadPath);
 
         }.bind(this));
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     }.bind(this));
@@ -302,5 +304,5 @@ class DockerRegistry {
 
 module.exports = {
   __esModule: true,
-  get default() { return DockerRegistry }
+  get default() { return DockerRegistry; }
 };

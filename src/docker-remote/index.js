@@ -12,7 +12,10 @@ class DockerRemote {
       this.docker = new Docker();
       this.docker.modem = dockerode_options.dockerode_modem;
     } else {
-      var socket = process.env.DOCKER_SOCKET || (dockerode_options && dockerode_options.socket_dockerode) || '/var/run/docker.sock';
+      var socket = process.env.DOCKER_SOCKET ||
+                  (dockerode_options && dockerode_options.socket_dockerode) ||
+                   '/var/run/docker.sock';
+
       var stats  = fs.statSync(socket);
       if (!stats.isSocket()) {
         throw new Error("Are you sure the docker is running?");
@@ -31,7 +34,7 @@ class DockerRemote {
           resolve(containers);
         });
 
-      } catch(err) {
+      } catch (err) {
         log.error(err);
         reject(err);
       }
@@ -48,7 +51,7 @@ class DockerRemote {
           resolve(containers);
         });
 
-      } catch(err) {
+      } catch (err) {
         log.error(err);
         reject(err);
       }
@@ -65,7 +68,7 @@ class DockerRemote {
           resolve(data);
         });
 
-      } catch(err) {
+      } catch (err) {
         log.error(err);
         reject(err);
       }
@@ -81,7 +84,7 @@ class DockerRemote {
         log.debug(image);
         return resolve(image);
 
-      } catch(err) {
+      } catch (err) {
         log.error(err);
         reject(err);
       }
@@ -108,7 +111,7 @@ class DockerRemote {
 
         image.inspect(handler);
 
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     }.bind(this));
@@ -135,7 +138,7 @@ class DockerRemote {
 
         }.bind(this));
 
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     }.bind(this));
@@ -157,7 +160,7 @@ class DockerRemote {
 
         this.docker.searchImages({ term: imageName }, handler);
 
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     }.bind(this));
@@ -183,7 +186,7 @@ class DockerRemote {
           resolve(imagesFound);
 
         }.bind(this));
-      } catch(ex) {
+      } catch (ex) {
         reject(ex);
       }
     }.bind(this));
@@ -213,7 +216,7 @@ class DockerRemote {
 
         }.bind(this));
 
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     }.bind(this));
@@ -246,7 +249,7 @@ class DockerRemote {
 
         }.bind(this));
 
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     }.bind(this));
@@ -257,7 +260,7 @@ class DockerRemote {
       try {
 
         var outputLoadPath = path.join(outputPath, imageId + '.tar');
-        var handler = function (err, data) {
+        var handler = function (err/*, data*/) {
           if (err) {
             return reject(err);
           }
@@ -269,7 +272,7 @@ class DockerRemote {
 
         this.docker.loadImage(outputLoadPath, handler);
 
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     }.bind(this));
@@ -295,23 +298,22 @@ class DockerRemote {
             tag  : tagName,
             force: true
           }, function(err, data) {
-            if(err) {
+            if (err) {
               return reject(err);
             }
             resolve(data);
           });
 
         }.bind(this));
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     }.bind(this));
   }
 
-
 }
 
 module.exports = {
   __esModule: true,
-  get default() { return DockerRemote }
+  get default() { return DockerRemote; }
 };

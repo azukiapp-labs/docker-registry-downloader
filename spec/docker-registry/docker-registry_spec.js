@@ -4,15 +4,12 @@ import FsHelper       from '../../src/fs-helper';
 import DockerHub      from '../../src/docker-hub';
 import DockerRegistry from '../../src/docker-registry';
 
-var _        = require('lodash');
 var chai     = require('chai');
 var Q        = require('q');
-var log      = require('../../src/helpers/logger');
 var path     = require('path');
 var logError = require('../../src/helpers/error-helper');
 var fsHelper = new FsHelper();
 Q.onerror    = logError;
-
 
 describe('Docker Registry API', function() {
 
@@ -62,10 +59,10 @@ describe('Docker Registry API', function() {
           retryDelay: 50
         };
 
-        var result = yield dockerRegistry.tags(hubResultAzktcl);
+        yield dockerRegistry.tags(hubResultAzktcl);
         done('should get error: ETIMEDOUT');
       }
-      catch(err) {
+      catch (err) {
         chai.expect(err.code).to.equal('ETIMEDOUT');
         done();
       }
@@ -96,10 +93,7 @@ describe('Docker Registry API', function() {
 
   it('should get image id by tag name', function(done) {
     Q.spawn(function* () {
-      var namespace = 'azukiapp';
-      var repository = 'azktcl';
       var tag = '0.0.1';
-
 
       var result = yield dockerRegistry.getImageIdByTag(hubResultAzktcl,
                                                         tag);
@@ -135,8 +129,6 @@ describe('Docker Registry API', function() {
   it('should get all anscestors layers for azktcl tag', function(done) {
     this.timeout(5000);
     Q.spawn(function* () {
-      var namespace = 'azukiapp';
-      var repository = 'azktcl';
       var tag = '0.0.2';
 
       var result = yield dockerRegistry.allAnscestorByTag(hubResultAzktcl, tag);

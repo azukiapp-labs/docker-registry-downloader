@@ -27,7 +27,7 @@ describe('Docker Hub API', function() {
     var docker_user = process.env.DOCKER_USER;
     var docker_pass = process.env.DOCKER_PASS;
 
-    if(!docker_user || !docker_pass) {
+    if (!docker_user || !docker_pass) {
       log.info('    - DOCKER_USER and DOCKER_PASS envs not found. Ignoring this test. (see README)');
       return done();
     }

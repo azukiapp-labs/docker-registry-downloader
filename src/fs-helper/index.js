@@ -6,12 +6,11 @@ var rmdir = require('rimraf');
 class FsHelper {
 
   removeDirRecursive(dir) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       rmdir(dir, function(err) {
         if (err) {
           reject(err);
-        }
-        else{
+        } else {
           resolve(true);
         }
       });
@@ -19,30 +18,30 @@ class FsHelper {
   }
 
   createCleanFolder(fullPath) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         Q.spawn(function* () {
-          if( yield this.fsExists(fullPath) ) {
+          if ( yield this.fsExists(fullPath) ) {
             // remove folder if exists
             yield this.removeDirRecursive(fullPath);
           }
           yield FS.makeTree(fullPath);
           resolve(fullPath);
         }.bind(this));
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     }.bind(this));
   }
 
   createFolder(fullPath) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         Q.spawn(function* () {
           yield FS.makeTree(fullPath);
           resolve(fullPath);
         }.bind(this));
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     }.bind(this));
@@ -50,12 +49,12 @@ class FsHelper {
   }
 
   fsExists(fullPath) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         fs.exists(fullPath, function(result) {
           resolve(result);
         });
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     }.bind(this));
@@ -63,7 +62,7 @@ class FsHelper {
   }
 
   tarPack(folderToPack, outputTarfile) {
-    return new Q.Promise(function (resolve, reject, notify) {
+    return new Q.Promise(function (resolve, reject) {
       try {
         var write = fs.createWriteStream;
         var pack = require('tar-pack').pack;
@@ -75,7 +74,7 @@ class FsHelper {
           .on('close', function () {
             resolve(true);
           });
-      } catch(err) {
+      } catch (err) {
         reject(err);
       }
     }.bind(this));
@@ -85,5 +84,5 @@ class FsHelper {
 
 module.exports = {
   __esModule: true,
-  get default() { return FsHelper }
+  get default() { return FsHelper; }
 };

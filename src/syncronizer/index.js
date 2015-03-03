@@ -43,9 +43,9 @@ class Syncronizer {
           }
           var imagesFound = yield this.dockerRemote.searchImagesByTag(fullTagName);
 
-           if (!imagesFound || imagesFound.length === 0) {
+          if (!imagesFound || imagesFound.length === 0) {
             //throw new Error('no local images found for ' + fullTagName);
-            log.debug('\n\n:: syncronizer - compare - no local image for '+ fullTagName +' ::');
+            log.debug('\n\n:: syncronizer - compare - no local image for ' + fullTagName + ' ::');
             log.debug(registryAncestors);
             log.info('  local layers found   :', 0);
             return resolve(registryAncestors);
@@ -68,7 +68,7 @@ class Syncronizer {
 
         }.bind(this));
 
-      } catch(err) {
+      } catch (err) {
         log.error(err.stack);
         reject(err);
       }
@@ -80,9 +80,9 @@ class Syncronizer {
       try {
         var allChecks = [];
 
-        for (var i=0; i < layersList.length; i++) {
-            var layerID = layersList[i];
-            allChecks.push(this.dockerRegistry.downloadImageGetSize(hubResult, layerID));
+        for (var i = 0; i < layersList.length; i++) {
+          var layerID = layersList[i];
+          allChecks.push(this.dockerRegistry.downloadImageGetSize(hubResult, layerID));
         }
 
         async.parallelLimit(allChecks, 10,
@@ -100,7 +100,7 @@ class Syncronizer {
 
           return resolve(totalSize);
         });
-      } catch(err) {
+      } catch (err) {
         log.error(err.stack);
         reject(err);
       }
@@ -114,11 +114,11 @@ class Syncronizer {
 
           var layerToDownload = [];
 
-          for (var i=0; i < layersList.length; i++) {
+          for (var i = 0; i < layersList.length; i++) {
             var layerID = layersList[i];
             var filename = path.join(outputPath, layerID + '.tar');
             var fileExists = yield fsHelper.fsExists(filename);
-            if(!fileExists) {
+            if (!fileExists) {
               layerToDownload.push(layerID);
             }
           }
@@ -127,13 +127,12 @@ class Syncronizer {
 
         }.bind(this));
 
-      } catch(err) {
+      } catch (err) {
         log.error(err.stack);
         reject(err);
       }
     }.bind(this));
   }
-
 
   downloadCallback(hubResult, outputPath, imageId, iProgress) {
     return function (callback) {
@@ -142,7 +141,7 @@ class Syncronizer {
           callback(null, yield this.dockerRegistry.prepareLoading(
             hubResult, outputPath, imageId, iProgress));
         }.bind(this));
-      } catch(err) {
+      } catch (err) {
         log.error(err.stack);
       }
     }.bind(this);
@@ -158,7 +157,7 @@ class Syncronizer {
           }
           callback(null, result);
         }.bind(this));
-      } catch(err) {
+      } catch (err) {
         log.error(err.stack);
       }
     }.bind(this);
@@ -173,7 +172,7 @@ class Syncronizer {
       try {
         var allDownloads = [];
 
-        for (var i=imageIdList.length-1; i >= 0 ; i--) {
+        for (var i = (imageIdList.length - 1); i >= 0 ; i--) {
           var layerID = imageIdList[i];
           allDownloads.push(this.downloadCallback(hubResult, outputPath, layerID, iProgress));
         }
@@ -187,7 +186,7 @@ class Syncronizer {
             resolve(results);
           }
         );
-      } catch(err) {
+      } catch (err) {
         log.error(err.stack);
         reject(err);
       }
@@ -206,7 +205,7 @@ class Syncronizer {
       try {
         var allLoads = [];
 
-        for (var i=imageIdList.length-1; i >= 0 ; i--) {
+        for (var i = (imageIdList.length - 1); i >= 0 ; i--) {
           var layerID = imageIdList[i];
           allLoads.push(this.loadCallback(hubResult, outputPath, layerID, iProgress));
         }
@@ -220,7 +219,7 @@ class Syncronizer {
             return resolve(results);
           }
         );
-      } catch(err) {
+      } catch (err) {
         log.error(err.stack);
         reject(err);
       }
@@ -236,24 +235,25 @@ class Syncronizer {
           // get all tags
           var tags = yield this.dockerRegistry.tags(hubResult);
           var results = [];
-          for(var name in tags)
-          {
-              if (tags.hasOwnProperty(name))
-              {
-                var tagName = name;
-                var imageId = tags[name];
+          for (var name in tags) {
+            if (tags.hasOwnProperty(name)) {
+              var tagName = name;
+              var imageId = tags[name];
 
-                log.debug('\n\n:: syncronizer - setTag - search image ::');
-                log.debug(tagName, imageId);
-                var result = yield this.dockerRemote.setImageTag(hubResult.namespace, hubResult.repository, imageId, tagName);
-                results.push(result);
-              }
+              log.debug('\n\n:: syncronizer - setTag - search image ::');
+              log.debug(tagName, imageId);
+              var result = yield this.dockerRemote.setImageTag(hubResult.namespace,
+                                                               hubResult.repository,
+                                                               imageId,
+                                                               tagName);
+              results.push(result);
+            }
           }
 
           resolve(results);
 
         }.bind(this));
-      } catch(err) {
+      } catch (err) {
         log.error(err.stack);
         reject(err);
       }
@@ -295,7 +295,7 @@ class Syncronizer {
           // calculate total size to download
           var totalSize = yield this.getSizes(hubResult, diffFilesToDownload);
           if (totalSize > 0) {
-            if(diffFilesToDownload.length > 0) {
+            if (diffFilesToDownload.length > 0) {
               log.info('  downloading ' + diffFilesToDownload.length + ' layers ' + prettyBytes(totalSize) + '...');
               progressMessage = '        [:bar] :percent ( time elapsed: :elapsed seconds )';
               bar = new ProgressBar(progressMessage, {
@@ -338,7 +338,7 @@ class Syncronizer {
           resolve(true);
 
         }.bind(this));
-      } catch(err) {
+      } catch (err) {
         log.error(err.stack);
         reject(err);
       }
@@ -386,7 +386,7 @@ class Syncronizer {
           });
 
         }.bind(this));
-      } catch(err) {
+      } catch (err) {
         log.error(err.stack);
         reject(err);
       }
@@ -410,7 +410,7 @@ class Syncronizer {
             return sum + anscestor.imageInspect.Size;
           }, 0);
 
-          log.debug('\n\n:: syncronizer - getTotalLocalSize '+ fullTagName +' ::');
+          log.debug('\n\n:: syncronizer - getTotalLocalSize ' + fullTagName + ' ::');
           log.debug(prettyBytes(total_local_size));
 
           resolve({
@@ -420,13 +420,12 @@ class Syncronizer {
           });
 
         }.bind(this));
-      } catch(err) {
+      } catch (err) {
         log.error(err.stack);
         reject(err);
       }
     }.bind(this));
   }
-
 
   getAllLayersFromRegistry(hubResult, tag) {
     return new Q.Promise(function (resolve, reject) {
@@ -444,7 +443,7 @@ class Syncronizer {
           });
 
         }.bind(this));
-      } catch(err) {
+      } catch (err) {
         log.error(err.stack);
         reject(err);
       }
@@ -457,11 +456,11 @@ class Syncronizer {
         Q.spawn(function* () {
 
           var image = yield this.dockerRemote.getImage(image_id);
-          var result = yield this.dockerRemote.inspectImage(image);
-          resolve(result);
+          var inspected_image = yield this.dockerRemote.inspectImage(image);
+          resolve(inspected_image);
 
         }.bind(this));
-      } catch(err) {
+      } catch (err) {
         log.error(err.stack);
         reject(err);
       }
@@ -476,37 +475,53 @@ class Syncronizer {
           var registry_result = yield this.getAllLayersFromRegistry(hubResult, tag);
           var registry_layers = registry_result.registry_layers;
 
-          var new_layers = _.filter(registry_layers, function(layer_info) {
-            console.log('registry:', layer_info);
-            var local_layer = this.checkLocalLayer(layer_info);
-
-            if (local_layer !== null) {
-              console.log('exists locally');
-              return false;
-            } else {
-              console.log('will be downloaded');
-              return true;
+          var layer_that_not_exist = [];
+          for (var i = 0; i < registry_layers.length; i++) {
+            var registry_layer = registry_layers[i];
+            var local_layer = yield this.checkLocalLayer(registry_layer);
+            if (!local_layer) {
+              layer_that_not_exist.push(registry_layer);
             }
-          }, this);
+          }
 
-          resolve(new_layers);
+          resolve(layer_that_not_exist);
 
         }.bind(this));
-      } catch(err) {
+      } catch (err) {
         log.error(err.stack);
         reject(err);
       }
     }.bind(this));
   }
 
+  checkTotalLocalSizes(layers_id_list) {
+    return new Q.Promise(function (resolve, reject) {
+      try {
+        Q.spawn(function* () {
 
-  // showAllLayers
+          var sum_sizes = 0;
 
+          for (var i = 0; i < layers_id_list.length; i++) {
+            var layer_id = layers_id_list[i];
+            var local_layer = yield this.checkLocalLayer(layer_id);
+            if ( local_layer ) {
+              sum_sizes += local_layer.Size;
+            }
+          }
 
+          resolve(sum_sizes);
+
+        }.bind(this));
+      } catch (err) {
+        log.error(err.stack);
+        reject(err);
+      }
+    }.bind(this));
+  }
 
 }
 
 module.exports = {
   __esModule: true,
-  get default() { return Syncronizer }
+  get default() { return Syncronizer; }
 };
