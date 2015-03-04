@@ -404,6 +404,14 @@ class Syncronizer {
             fullTagName = hubResult.repository + ':' + tag;
           }
           var imagesFound = yield this.dockerRemote.searchImagesByTag(fullTagName);
+
+          if (!imagesFound || imagesFound.length === 0) {
+            return resolve({
+              total_local_size : 0,
+              localAncestors   : [],
+              imagesFound      : imagesFound,
+            });
+          }
           var localAncestors = yield this.dockerRemote.anscestors(imagesFound[0].Id);
 
           var total_local_size = _.reduce(localAncestors, function(sum, anscestor) {
@@ -473,18 +481,22 @@ class Syncronizer {
         Q.spawn(function* () {
 
           var registry_result = yield this.getAllLayersFromRegistry(hubResult, tag);
-          var registry_layers = registry_result.registry_layers;
+          var registry_layers_ids = registry_result.registry_layers;
 
-          var layer_that_not_exist = [];
-          for (var i = 0; i < registry_layers.length; i++) {
-            var registry_layer = registry_layers[i];
+          var non_existent_locally_ids = [];
+
+          for (var i = 0; i < registry_layers_ids.length; i++) {
+            var registry_layer = registry_layers_ids[i];
             var local_layer = yield this.checkLocalLayer(registry_layer);
             if (!local_layer) {
-              layer_that_not_exist.push(registry_layer);
+              non_existent_locally_ids.push(registry_layer);
             }
           }
 
-          resolve(layer_that_not_exist);
+          resolve({
+            registry_layers_ids      : registry_layers_ids,
+            non_existent_locally_ids : non_existent_locally_ids,
+          });
 
         }.bind(this));
       } catch (err) {
@@ -510,6 +522,31 @@ class Syncronizer {
           }
 
           resolve(sum_sizes);
+
+        }.bind(this));
+      } catch (err) {
+        log.error(err.stack);
+        reject(err);
+      }
+    }.bind(this));
+  }
+
+  checkTotalLocalCount(layers_id_list) {
+    return new Q.Promise(function (resolve, reject) {
+      try {
+        Q.spawn(function* () {
+
+          var sum_count = 0;
+
+          for (var i = 0; i < layers_id_list.length; i++) {
+            var layer_id = layers_id_list[i];
+            var local_layer = yield this.checkLocalLayer(layer_id);
+            if ( local_layer ) {
+              sum_count = sum_count + 1;
+            }
+          }
+
+          resolve(sum_count);
 
         }.bind(this));
       } catch (err) {
