@@ -18,20 +18,14 @@ class FsHelper {
   }
 
   createCleanFolder(fullPath) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
-          if ( yield this.fsExists(fullPath) ) {
-            // remove folder if exists
-            yield this.removeDirRecursive(fullPath);
-          }
-          yield FS.makeTree(fullPath);
-          resolve(fullPath);
-        }.bind(this));
-      } catch (err) {
-        reject(err);
+    return Q.async(function* () {
+      if ( yield this.fsExists(fullPath) ) {
+        // remove folder if exists
+        yield this.removeDirRecursive(fullPath);
       }
-    }.bind(this));
+      yield FS.makeTree(fullPath);
+      return fullPath;
+    }.bind(this))();
   }
 
   createFolder(fullPath) {

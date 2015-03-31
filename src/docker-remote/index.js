@@ -118,30 +118,23 @@ class DockerRemote {
   }
 
   removeImage(imageId) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
+    return Q.async(function* () {
 
-          var image = yield this.getImage(imageId);
+      var image = yield this.getImage(imageId);
 
-          var handler = function (err, data) {
-            if (err) {
-              return reject(err);
-            }
+      var handler = function (err, data) {
+        if (err) {
+          throw err;
+        }
 
-            log.debug('\n\n:: docker-remote - removeImage ::');
-            log.debug(data);
-            return resolve(data);
-          };
+        log.debug('\n\n:: docker-remote - removeImage ::');
+        log.debug(data);
+        return data;
+      };
 
-          image.remove(handler);
+      image.remove(handler);
 
-        }.bind(this));
-
-      } catch (err) {
-        reject(err);
-      }
-    }.bind(this));
+    }.bind(this))();
   }
 
   searchImages(imageName) {
@@ -167,92 +160,67 @@ class DockerRemote {
   }
 
   searchImagesByTag(tagName) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
+    return Q.async(function* () {
+      // get all images
+      var allImages = yield this.listImages();
 
-          // get all images
-          var allImages = yield this.listImages();
+      // search tag
+      var imagesFound = _.filter(allImages, function(image) {
+        if (_.contains(image.RepoTags, tagName)) {
+          return image;
+        }
+      }, this);
 
-          // search tag
-          var imagesFound = _.filter(allImages, function(image) {
-            if (_.contains(image.RepoTags, tagName)) {
-              return image;
-            }
-          }, this);
-
-          log.debug('\n\n:: docker-remote - searchImagesByTag ::');
-          log.debug(imagesFound);
-          resolve(imagesFound);
-
-        }.bind(this));
-      } catch (ex) {
-        reject(ex);
-      }
-    }.bind(this));
+      log.debug('\n\n:: docker-remote - searchImagesByTag ::');
+      log.debug(imagesFound);
+      return imagesFound;
+    }.bind(this))();
   }
 
   getParent(imageId) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
+    return Q.async(function* () {
+      var currentImage = yield this.getImage(imageId);
+      var imageInspect = yield this.inspectImage(currentImage);
 
-          var currentImage = yield this.getImage(imageId);
-          var imageInspect = yield this.inspectImage(currentImage);
-
-          if (imageInspect === null) {
-            log.debug('\n\n:: docker-remote - getParent ::');
-            log.debug('image not found: ' + imageId);
-            return resolve(null);
-          }
-
-          log.debug('\n\n:: docker-remote - getParent ::');
-          log.debug('image  ID: ' + imageId);
-          log.debug('parent ID:   ' + imageInspect.Parent);
-          return resolve({
-            image        : currentImage,
-            imageInspect : imageInspect
-          });
-
-        }.bind(this));
-
-      } catch (err) {
-        reject(err);
+      if (imageInspect === null) {
+        log.debug('\n\n:: docker-remote - getParent ::');
+        log.debug('image not found: ' + imageId);
+        return null;
       }
-    }.bind(this));
+
+      log.debug('\n\n:: docker-remote - getParent ::');
+      log.debug('image  ID: ' + imageId);
+      log.debug('parent ID:   ' + imageInspect.Parent);
+      return ({
+        image        : currentImage,
+        imageInspect : imageInspect
+      });
+    }.bind(this))();
   }
 
   anscestors(firstImageId) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
-          var currentImageId = firstImageId;
-          var anscestors = [];
+    return Q.async(function* () {
+      var currentImageId = firstImageId;
+      var anscestors = [];
 
-          while (currentImageId) {
-            var imageResult = yield this.getParent(currentImageId);
+      while (currentImageId) {
+        var imageResult = yield this.getParent(currentImageId);
 
-            if (imageResult === null) {
-              log.debug('\n\n:: docker-remote - anscestors ::');
-              log.debug('image not found: ' + currentImageId);
-              return resolve(null);
-            }
-
-            anscestors.push(imageResult);
-            currentImageId = imageResult.imageInspect.Parent;
-          }
-
+        if (imageResult === null) {
           log.debug('\n\n:: docker-remote - anscestors ::');
-          var imageInspectors = _.pluck(anscestors, 'imageInspect');
-          log.debug(_.pluck(imageInspectors, 'Id'));
-          return resolve(anscestors);
+          log.debug('image not found: ' + currentImageId);
+          return null;
+        }
 
-        }.bind(this));
-
-      } catch (err) {
-        reject(err);
+        anscestors.push(imageResult);
+        currentImageId = imageResult.imageInspect.Parent;
       }
-    }.bind(this));
+
+      log.debug('\n\n:: docker-remote - anscestors ::');
+      var imageInspectors = _.pluck(anscestors, 'imageInspect');
+      log.debug(_.pluck(imageInspectors, 'Id'));
+      return anscestors;
+    }.bind(this))();
   }
 
   loadImage(outputPath, imageId) {
@@ -279,36 +247,29 @@ class DockerRemote {
   }
 
   setImageTag(namespace, repository, imageId, tagName) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
-          var image = yield this.docker.getImage(imageId);
+    return Q.async(function* () {
+      var image = yield this.docker.getImage(imageId);
 
-          // check if the image exists
-          var imageInspectResult = yield this.inspectImage(image);
-          if (imageInspectResult === null) {
-            log.debug('\n\n:: docker-remote - setImageTag ::');
-            log.debug('no image found with ' + imageId);
-            resolve(null);
-          }
-
-          // tag local image
-          image.tag({
-            repo : namespace + '/' + repository,
-            tag  : tagName,
-            force: true
-          }, function(err, data) {
-            if (err) {
-              return reject(err);
-            }
-            resolve(data);
-          });
-
-        }.bind(this));
-      } catch (err) {
-        reject(err);
+      // check if the image exists
+      var imageInspectResult = yield this.inspectImage(image);
+      if (imageInspectResult === null) {
+        log.debug('\n\n:: docker-remote - setImageTag ::');
+        log.debug('no image found with ' + imageId);
+        return null;
       }
-    }.bind(this));
+
+      // tag local image
+      image.tag({
+        repo : namespace + '/' + repository,
+        tag  : tagName,
+        force: true
+      }, function(err, data) {
+        if (err) {
+          throw err;
+        }
+        return data;
+      });
+    }.bind(this))();
   }
 
 }

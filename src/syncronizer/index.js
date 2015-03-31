@@ -27,52 +27,43 @@ class Syncronizer {
   }
 
   compare(hubResult, tag) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
-          // get endpoint and token from docker hub
-          var imageId = yield this.dockerRegistry.getImageIdByTag(hubResult, tag);
+    return Q.async(function* () {
+      // get endpoint and token from docker hub
+      var imageId = yield this.dockerRegistry.getImageIdByTag(hubResult, tag);
 
-          var registryAncestors = yield this.dockerRegistry.ancestry(hubResult, imageId);
-          log.info('  registry layers count:', registryAncestors.length);
+      var registryAncestors = yield this.dockerRegistry.ancestry(hubResult, imageId);
+      log.info('  registry layers count:', registryAncestors.length);
 
-          // get from local docker
-          var fullTagName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
-          if (hubResult.namespace === 'library') {
-            fullTagName = hubResult.repository + ':' + tag;
-          }
-          var imagesFound = yield this.dockerRemote.searchImagesByTag(fullTagName);
-
-          if (!imagesFound || imagesFound.length === 0) {
-            //throw new Error('no local images found for ' + fullTagName);
-            log.debug('\n\n:: syncronizer - compare - no local image for ' + fullTagName + ' ::');
-            log.debug(registryAncestors);
-            log.info('  local layers found   :', 0);
-            return resolve(registryAncestors);
-          }
-
-          var localAncestors = yield this.dockerRemote.anscestors(imagesFound[0].Id);
-          log.info('    local layers found:', localAncestors.length);
-          var localImageInspectors = _.pluck(localAncestors, 'imageInspect');
-
-          var localIds = _.pluck(localImageInspectors, 'Id');
-          var diff = _.difference(registryAncestors, localIds);
-          log.debug('\n\n:: syncronizer - compare registryAncestors ::');
-          log.debug(registryAncestors);
-          log.debug('\n\n:: syncronizer - compare localIds ::');
-          log.debug(localIds);
-          log.debug('\n\n:: syncronizer - compare diff ::');
-          log.debug(diff);
-          log.info('    diff images:', diff.length);
-          return resolve(diff);
-
-        }.bind(this));
-
-      } catch (err) {
-        log.error(err.stack);
-        reject(err);
+      // get from local docker
+      var fullTagName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
+      if (hubResult.namespace === 'library') {
+        fullTagName = hubResult.repository + ':' + tag;
       }
-    }.bind(this));
+      var imagesFound = yield this.dockerRemote.searchImagesByTag(fullTagName);
+
+      if (!imagesFound || imagesFound.length === 0) {
+        //throw new Error('no local images found for ' + fullTagName);
+        log.debug('\n\n:: syncronizer - compare - no local image for ' + fullTagName + ' ::');
+        log.debug(registryAncestors);
+        log.info('  local layers found   :', 0);
+        return registryAncestors;
+      }
+
+      var localAncestors = yield this.dockerRemote.anscestors(imagesFound[0].Id);
+      log.info('    local layers found:', localAncestors.length);
+      var localImageInspectors = _.pluck(localAncestors, 'imageInspect');
+
+      var localIds = _.pluck(localImageInspectors, 'Id');
+      var diff = _.difference(registryAncestors, localIds);
+      log.debug('\n\n:: syncronizer - compare registryAncestors ::');
+      log.debug(registryAncestors);
+      log.debug('\n\n:: syncronizer - compare localIds ::');
+      log.debug(localIds);
+      log.debug('\n\n:: syncronizer - compare diff ::');
+      log.debug(diff);
+      log.info('    diff images:', diff.length);
+      return diff;
+    }.bind(this))();
   }
 
   getSizes(hubResult, layersList) {
@@ -108,30 +99,21 @@ class Syncronizer {
   }
 
   checkDownloadedFiles(layersList, outputPath) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
+    return Q.async(function* () {
 
-          var layerToDownload = [];
+      var layerToDownload = [];
 
-          for (var i = 0; i < layersList.length; i++) {
-            var layerID = layersList[i];
-            var filename = path.join(outputPath, layerID + '.tar');
-            var fileExists = yield fsHelper.fsExists(filename);
-            if (!fileExists) {
-              layerToDownload.push(layerID);
-            }
-          }
-
-          resolve(layerToDownload);
-
-        }.bind(this));
-
-      } catch (err) {
-        log.error(err.stack);
-        reject(err);
+      for (var i = 0; i < layersList.length; i++) {
+        var layerID = layersList[i];
+        var filename = path.join(outputPath, layerID + '.tar');
+        var fileExists = yield fsHelper.fsExists(filename);
+        if (!fileExists) {
+          layerToDownload.push(layerID);
+        }
       }
-    }.bind(this));
+
+      return layerToDownload;
+    }.bind(this))();
   }
 
   downloadCallback(hubResult, outputPath, imageId, iProgress) {
@@ -149,17 +131,13 @@ class Syncronizer {
 
   loadCallback(hubResult, outputPath, imageId, iProgress) {
     return function (callback) {
-      try {
-        Q.spawn(function* () {
-          var result = yield this.dockerRemote.loadImage(outputPath, imageId);
-          if (iProgress) {
-            iProgress(1);
-          }
-          callback(null, result);
-        }.bind(this));
-      } catch (err) {
-        log.error(err.stack);
-      }
+      Q.async(function* () {
+        var result = yield this.dockerRemote.loadImage(outputPath, imageId);
+        if (iProgress) {
+          iProgress(1);
+        }
+        callback(null, result);
+      }.bind(this))();
     }.bind(this);
   }
 
@@ -228,121 +206,105 @@ class Syncronizer {
   }
 
   setTags(hubResult) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
+    return Q.async(function* () {
 
-          // get all tags
-          var tags = yield this.dockerRegistry.tags(hubResult);
-          var results = [];
-          for (var name in tags) {
-            if (tags.hasOwnProperty(name)) {
-              var tagName = name;
-              var imageId = tags[name];
+      // get all tags
+      var tags = yield this.dockerRegistry.tags(hubResult);
+      var results = [];
+      for (var name in tags) {
+        if (tags.hasOwnProperty(name)) {
+          var tagName = name;
+          var imageId = tags[name];
 
-              log.debug('\n\n:: syncronizer - setTag - search image ::');
-              log.debug(tagName, imageId);
-              var result = yield this.dockerRemote.setImageTag(hubResult.namespace,
-                                                               hubResult.repository,
-                                                               imageId,
-                                                               tagName);
-              results.push(result);
-            }
-          }
-
-          resolve(results);
-
-        }.bind(this));
-      } catch (err) {
-        log.error(err.stack);
-        reject(err);
+          log.debug('\n\n:: syncronizer - setTag - search image ::');
+          log.debug(tagName, imageId);
+          var result = yield this.dockerRemote.setImageTag(hubResult.namespace,
+                                                           hubResult.repository,
+                                                           imageId,
+                                                           tagName);
+          results.push(result);
+        }
       }
-    }.bind(this));
+
+      return results;
+    }.bind(this))();
 
   }
 
   sync(hubResult, tag, outputPath, forceOverwrite) {
     var progressMessage, bar, iProgress;
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
+    return Q.async(function* () {
 
-          if (!outputPath) {
-            // no folder was sent, set to /tmp
-            outputPath = this.getOsTempDir();
-            log.info('creating temp folder', outputPath);
-            yield this.createAndCleanTempDir(outputPath);
-          }
+      if (!outputPath) {
+        // no folder was sent, set to /tmp
+        outputPath = this.getOsTempDir();
+        log.info('creating temp folder', outputPath);
+        yield this.createAndCleanTempDir(outputPath);
+      }
 
-          var imageFullName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
-          log.info('syncing', imageFullName);
-          log.info('  comparing docker registry with local images...');
-          // compare all local layers with registry layers
-          var totalLayersToLoad = yield this.compare(hubResult, tag);
+      var imageFullName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
+      log.info('syncing', imageFullName);
+      log.info('  comparing docker registry with local images...');
+      // compare all local layers with registry layers
+      var totalLayersToLoad = yield this.compare(hubResult, tag);
 
-          log.info('  getting total size...');
-          var diffFilesToDownload;
-          if (forceOverwrite) {
-            // will download and overwrite all files
-            log.info('  (force overwrite is active)...');
-            diffFilesToDownload = totalLayersToLoad;
-          } else {
-            // will download only files that does not exists
-            log.info('  checking already downloaded files...');
-            diffFilesToDownload = yield this.checkDownloadedFiles(totalLayersToLoad, outputPath);
-          }
+      log.info('  getting total size...');
+      var diffFilesToDownload;
+      if (forceOverwrite) {
+        // will download and overwrite all files
+        log.info('  (force overwrite is active)...');
+        diffFilesToDownload = totalLayersToLoad;
+      } else {
+        // will download only files that does not exists
+        log.info('  checking already downloaded files...');
+        diffFilesToDownload = yield this.checkDownloadedFiles(totalLayersToLoad, outputPath);
+      }
 
-          // calculate total size to download
-          var totalSize = yield this.getSizes(hubResult, diffFilesToDownload);
-          if (totalSize > 0) {
-            if (diffFilesToDownload.length > 0) {
-              log.info('  downloading ' + diffFilesToDownload.length + ' layers ' + prettyBytes(totalSize) + '...');
-              progressMessage = '        [:bar] :percent ( time elapsed: :elapsed seconds )';
-              bar = new ProgressBar(progressMessage, {
-                complete: '=',
-                incomplete: ' ',
-                width: 23,
-                total: totalSize
-              });
-              iProgress = function(chunkSize) {
-                bar.tick(chunkSize);
-              };
-              yield this.downloadList(hubResult, outputPath, diffFilesToDownload, iProgress);
-            }
-          }
-
-          log.info('  download folder: `' + outputPath + '`');
-          log.info('  loading ' + totalLayersToLoad.length + ' layers...');
+      // calculate total size to download
+      var totalSize = yield this.getSizes(hubResult, diffFilesToDownload);
+      if (totalSize > 0) {
+        if (diffFilesToDownload.length > 0) {
+          log.info('  downloading ' + diffFilesToDownload.length + ' layers ' + prettyBytes(totalSize) + '...');
           progressMessage = '        [:bar] :percent ( time elapsed: :elapsed seconds )';
           bar = new ProgressBar(progressMessage, {
             complete: '=',
             incomplete: ' ',
             width: 23,
-            total: totalLayersToLoad.length
+            total: totalSize
           });
-          iProgress = function(num) {
-            bar.tick(num);
+          iProgress = function(chunkSize) {
+            bar.tick(chunkSize);
           };
-          yield this.loadList(hubResult, outputPath, totalLayersToLoad, iProgress);
-
-          log.info('  setting tags...');
-          yield this.setTags(hubResult);
-
-          log.info('finished loading', imageFullName);
-
-          // if (outputPath === this.getOsTempDir()) {
-          //   log.info('removing temp folder', outputPath);
-          //   yield this.removeTempDir(outputPath);
-          // }
-
-          resolve(true);
-
-        }.bind(this));
-      } catch (err) {
-        log.error(err.stack);
-        reject(err);
+          yield this.downloadList(hubResult, outputPath, diffFilesToDownload, iProgress);
+        }
       }
-    }.bind(this));
+
+      log.info('  download folder: `' + outputPath + '`');
+      log.info('  loading ' + totalLayersToLoad.length + ' layers...');
+      progressMessage = '        [:bar] :percent ( time elapsed: :elapsed seconds )';
+      bar = new ProgressBar(progressMessage, {
+        complete: '=',
+        incomplete: ' ',
+        width: 23,
+        total: totalLayersToLoad.length
+      });
+      iProgress = function(num) {
+        bar.tick(num);
+      };
+      yield this.loadList(hubResult, outputPath, totalLayersToLoad, iProgress);
+
+      log.info('  setting tags...');
+      yield this.setTags(hubResult);
+
+      log.info('finished loading', imageFullName);
+
+      // if (outputPath === this.getOsTempDir()) {
+      //   log.info('removing temp folder', outputPath);
+      //   yield this.removeTempDir(outputPath);
+      // }
+
+      return true;
+    }.bind(this))();
   }
 
   createAndCleanTempDir(dir) {
@@ -394,166 +356,114 @@ class Syncronizer {
   }
 
   getTotalLocalSize(hubResult, tag) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
+    return Q.async(function* () {
 
-          // get from local docker
-          var fullTagName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
-          if (hubResult.namespace === 'library') {
-            fullTagName = hubResult.repository + ':' + tag;
-          }
-          var imagesFound = yield this.dockerRemote.searchImagesByTag(fullTagName);
-
-          if (!imagesFound || imagesFound.length === 0) {
-            return resolve({
-              total_local_size : 0,
-              localAncestors   : [],
-              imagesFound      : imagesFound,
-            });
-          }
-          var localAncestors = yield this.dockerRemote.anscestors(imagesFound[0].Id);
-
-          var total_local_size = _.reduce(localAncestors, function(sum, anscestor) {
-            return sum + anscestor.imageInspect.Size;
-          }, 0);
-
-          log.debug('\n\n:: syncronizer - getTotalLocalSize ' + fullTagName + ' ::');
-          log.debug(prettyBytes(total_local_size));
-
-          resolve({
-            total_local_size : total_local_size,
-            localAncestors   : localAncestors,
-            imagesFound      : imagesFound,
-          });
-
-        }.bind(this));
-      } catch (err) {
-        log.error(err.stack);
-        reject(err);
+      // get from local docker
+      var fullTagName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
+      if (hubResult.namespace === 'library') {
+        fullTagName = hubResult.repository + ':' + tag;
       }
-    }.bind(this));
+      var imagesFound = yield this.dockerRemote.searchImagesByTag(fullTagName);
+
+      if (!imagesFound || imagesFound.length === 0) {
+        return ({
+          total_local_size : 0,
+          localAncestors   : [],
+          imagesFound      : imagesFound,
+        });
+      }
+      var localAncestors = yield this.dockerRemote.anscestors(imagesFound[0].Id);
+
+      var total_local_size = _.reduce(localAncestors, function(sum, anscestor) {
+        return sum + anscestor.imageInspect.Size;
+      }, 0);
+
+      log.debug('\n\n:: syncronizer - getTotalLocalSize ' + fullTagName + ' ::');
+      log.debug(prettyBytes(total_local_size));
+
+      return ({
+        total_local_size : total_local_size,
+        localAncestors   : localAncestors,
+        imagesFound      : imagesFound,
+      });
+    }.bind(this))();
   }
 
   getAllLayersFromRegistry(hubResult, tag) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
+    return Q.async(function* () {
+      // get endpoint and token from docker hub
+      var imageId = yield this.dockerRegistry.getImageIdByTag(hubResult, tag);
+      var registryAncestors = yield this.dockerRegistry.ancestry(hubResult, imageId);
 
-          // get endpoint and token from docker hub
-          var imageId = yield this.dockerRegistry.getImageIdByTag(hubResult, tag);
-          var registryAncestors = yield this.dockerRegistry.ancestry(hubResult, imageId);
-
-          resolve({
-            hub_result      : hubResult,
-            image_id        : imageId,
-            registry_layers : registryAncestors
-          });
-
-        }.bind(this));
-      } catch (err) {
-        log.error(err.stack);
-        reject(err);
-      }
-    }.bind(this));
+      return ({
+        hub_result      : hubResult,
+        image_id        : imageId,
+        registry_layers : registryAncestors
+      });
+    }.bind(this))();
   }
 
   checkLocalLayer(image_id) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
-
-          var image = yield this.dockerRemote.getImage(image_id);
-          var inspected_image = yield this.dockerRemote.inspectImage(image);
-          resolve(inspected_image);
-
-        }.bind(this));
-      } catch (err) {
-        log.error(err.stack);
-        reject(err);
-      }
-    }.bind(this));
+    return Q.async(function* () {
+      var image = yield this.dockerRemote.getImage(image_id);
+      var inspected_image = yield this.dockerRemote.inspectImage(image);
+      return inspected_image;
+    }.bind(this))();
   }
 
   getLayersDiff(hubResult, tag) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
+    return Q.async(function* () {
+      var registry_result = yield this.getAllLayersFromRegistry(hubResult, tag);
+      var registry_layers_ids = registry_result.registry_layers;
 
-          var registry_result = yield this.getAllLayersFromRegistry(hubResult, tag);
-          var registry_layers_ids = registry_result.registry_layers;
+      var non_existent_locally_ids = [];
 
-          var non_existent_locally_ids = [];
-
-          for (var i = 0; i < registry_layers_ids.length; i++) {
-            var registry_layer = registry_layers_ids[i];
-            var local_layer = yield this.checkLocalLayer(registry_layer);
-            if (!local_layer) {
-              non_existent_locally_ids.push(registry_layer);
-            }
-          }
-
-          resolve({
-            registry_layers_ids      : registry_layers_ids,
-            non_existent_locally_ids : non_existent_locally_ids,
-          });
-
-        }.bind(this));
-      } catch (err) {
-        log.error(err.stack);
-        reject(err);
+      for (var i = 0; i < registry_layers_ids.length; i++) {
+        var registry_layer = registry_layers_ids[i];
+        var local_layer = yield this.checkLocalLayer(registry_layer);
+        if (!local_layer) {
+          non_existent_locally_ids.push(registry_layer);
+        }
       }
-    }.bind(this));
+
+      return ({
+        registry_layers_ids      : registry_layers_ids,
+        non_existent_locally_ids : non_existent_locally_ids,
+      });
+    }.bind(this))();
   }
 
   checkTotalLocalSizes(layers_id_list) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
+    return Q.async(function* () {
+      var sum_sizes = 0;
 
-          var sum_sizes = 0;
-
-          for (var i = 0; i < layers_id_list.length; i++) {
-            var layer_id = layers_id_list[i];
-            var local_layer = yield this.checkLocalLayer(layer_id);
-            if ( local_layer ) {
-              sum_sizes += local_layer.Size;
-            }
-          }
-
-          resolve(sum_sizes);
-
-        }.bind(this));
-      } catch (err) {
-        log.error(err.stack);
-        reject(err);
+      for (var i = 0; i < layers_id_list.length; i++) {
+        var layer_id = layers_id_list[i];
+        var local_layer = yield this.checkLocalLayer(layer_id);
+        if ( local_layer ) {
+          sum_sizes += local_layer.Size;
+        }
       }
-    }.bind(this));
+
+      return sum_sizes;
+
+    }.bind(this))();
   }
 
   checkTotalLocalCount(layers_id_list) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
+    return Q.async(function* () {
+      var sum_count = 0;
 
-          var sum_count = 0;
-
-          for (var i = 0; i < layers_id_list.length; i++) {
-            var layer_id = layers_id_list[i];
-            var local_layer = yield this.checkLocalLayer(layer_id);
-            if ( local_layer ) {
-              sum_count = sum_count + 1;
-            }
-          }
-
-          resolve(sum_count);
-
-        }.bind(this));
-      } catch (err) {
-        log.error(err.stack);
-        reject(err);
+      for (var i = 0; i < layers_id_list.length; i++) {
+        var layer_id = layers_id_list[i];
+        var local_layer = yield this.checkLocalLayer(layer_id);
+        if ( local_layer ) {
+          sum_count = sum_count + 1;
+        }
       }
-    }.bind(this));
+
+      return sum_count;
+    }.bind(this))();
   }
 
 }

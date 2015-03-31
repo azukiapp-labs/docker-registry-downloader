@@ -177,29 +177,22 @@ class DockerRegistry {
   }
 
   allAnscestorByTag(hubResult, tag) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
-          log.debug('\n\n:: docker-registry - allAnscestorByTag ::');
-          log.debug('endpoint:', hubResult.endpoint);
-          log.debug('token:', hubResult.token);
-          log.debug('namespace:', hubResult.namespace);
-          log.debug('repository:', hubResult.repository);
-          log.debug('tag:', tag);
-          log.debug('>>------------');
+    return Q.async(function* () {
+      log.debug('\n\n:: docker-registry - allAnscestorByTag ::');
+      log.debug('endpoint:', hubResult.endpoint);
+      log.debug('token:', hubResult.token);
+      log.debug('namespace:', hubResult.namespace);
+      log.debug('repository:', hubResult.repository);
+      log.debug('tag:', tag);
+      log.debug('>>------------');
 
-          // get imageId from tag
-          var imageId = yield this.getImageIdByTag(hubResult, tag);
-          //get all anscestors
-          var anscestors = yield this.ancestry(hubResult, imageId);
+      // get imageId from tag
+      var imageId = yield this.getImageIdByTag(hubResult, tag);
+      //get all anscestors
+      var anscestors = yield this.ancestry(hubResult, imageId);
 
-          resolve(anscestors);
-
-        }.bind(this));
-      } catch (err) {
-        reject(err);
-      }
-    }.bind(this));
+      return anscestors;
+    }.bind(this))();
   }
 
   downloadImageGetSize(hubResult, imageId) {
@@ -265,39 +258,32 @@ class DockerRegistry {
 
   // http://docs.docker.com/reference/api/docker_remote_api_v1.16/#load-a-tarball-with-a-set-of-images-and-tags-into-docker
   prepareLoading(hubResult, outputPath, imageId, iProgress) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
-          // An image tarball contains one directory per image layer (named using its long ID)
-          var outputLoadPath = path.join(outputPath, imageId);
-          yield fsHelper.createCleanFolder(outputLoadPath);
+    return Q.async(function* () {
+      // An image tarball contains one directory per image layer (named using its long ID)
+      var outputLoadPath = path.join(outputPath, imageId);
+      yield fsHelper.createCleanFolder(outputLoadPath);
 
-          // VERSION: currently 1.0 - the file format version
-          var versionFilePath = path.join(outputLoadPath, "VERSION");
-          yield Q.nfcall(fs.writeFile, versionFilePath, "1.0");
+      // VERSION: currently 1.0 - the file format version
+      var versionFilePath = path.join(outputLoadPath, "VERSION");
+      yield Q.nfcall(fs.writeFile, versionFilePath, "1.0");
 
-          // json: detailed layer information, similar to docker inspect layer_id
-          var jsonResult = yield this.imageJson(hubResult, imageId);
-          var jsonFilePath = path.join(outputLoadPath, "json");
-          yield Q.nfcall(fs.writeFile, jsonFilePath, JSON.stringify(jsonResult, ' ', 3));
+      // json: detailed layer information, similar to docker inspect layer_id
+      var jsonResult = yield this.imageJson(hubResult, imageId);
+      var jsonFilePath = path.join(outputLoadPath, "json");
+      yield Q.nfcall(fs.writeFile, jsonFilePath, JSON.stringify(jsonResult, ' ', 3));
 
-          // layer.tar: A tarfile containing the filesystem changes in this layer
-          var layerTarFilePath = path.join(outputLoadPath, "layer.tar");
-          yield this.downloadImage(hubResult, layerTarFilePath, imageId, iProgress);
+      // layer.tar: A tarfile containing the filesystem changes in this layer
+      var layerTarFilePath = path.join(outputLoadPath, "layer.tar");
+      yield this.downloadImage(hubResult, layerTarFilePath, imageId, iProgress);
 
-          // create tar file
-          yield fsHelper.tarPack(outputLoadPath, path.join(outputLoadPath, '..', imageId + '.tar'));
+      // create tar file
+      yield fsHelper.tarPack(outputLoadPath, path.join(outputLoadPath, '..', imageId + '.tar'));
 
-          // remove folder
-          yield fsHelper.removeDirRecursive(outputLoadPath);
+      // remove folder
+      yield fsHelper.removeDirRecursive(outputLoadPath);
 
-          resolve(outputLoadPath);
-
-        }.bind(this));
-      } catch (err) {
-        reject(err);
-      }
-    }.bind(this));
+      return outputLoadPath;
+    }.bind(this))();
   }
 
 }
