@@ -29,17 +29,10 @@ class FsHelper {
   }
 
   createFolder(fullPath) {
-    return new Q.Promise(function (resolve, reject) {
-      try {
-        Q.spawn(function* () {
-          yield FS.makeTree(fullPath);
-          resolve(fullPath);
-        }.bind(this));
-      } catch (err) {
-        reject(err);
-      }
-    }.bind(this));
-
+    return Q.async(function* () {
+      yield FS.makeTree(fullPath);
+      return fullPath;
+    }.bind(this))();
   }
 
   fsExists(fullPath) {
