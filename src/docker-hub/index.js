@@ -1,7 +1,6 @@
 var request        = require('requestretry');
 var DOCKER_HUB_URL = 'https://index.docker.io';
 var Q              = require('q');
-var request        = require('requestretry');
 var log            = require('../helpers/logger');
 var _              = require('lodash');
 
@@ -46,8 +45,7 @@ class DockerHub {
         request_options_local
       );
       function callback(error, response/*, body*/) {
-        if (!error && response.statusCode == 200) {
-
+        if (response.statusCode == 200) {
           // ---------------------------------------
           // response.headers
           // ---------------------------------------
@@ -61,8 +59,16 @@ class DockerHub {
             token      : response.headers['x-docker-token'],
           };
           log.debug(result);
-          resolve(result);
+          return resolve(result);
         } else {
+          if (!error) {
+            var message = [response.statusCode];
+            if (response.statusCode === 404) {
+              message.push('image not available');
+            }
+            error = new Error(message.join(' - '));
+            error.code = response.statusCode;
+          }
           reject(error);
         }
       }
