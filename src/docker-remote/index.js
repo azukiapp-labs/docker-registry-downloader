@@ -28,15 +28,12 @@ class DockerRemote {
   listActiveContainers() {
     return createPromise(this, function (resolve, reject) {
       try {
-
         this.docker.listContainers({all: false}, function(err, containers) {
           log.debug('\n\n:: docker-remote - listActiveContainers ::');
           log.debug(containers);
           resolve(containers);
         });
-
       } catch (err) {
-        log.error(err);
         reject(err);
       }
     });
@@ -45,15 +42,12 @@ class DockerRemote {
   listAllContainers() {
     return createPromise(this, function (resolve, reject) {
       try {
-
         this.docker.listContainers({all: true}, function(err, containers) {
           log.debug('\n\n:: docker-remote - listAllContainers ::');
           log.debug(containers);
           resolve(containers);
         });
-
       } catch (err) {
-        log.error(err);
         reject(err);
       }
     });
@@ -62,15 +56,12 @@ class DockerRemote {
   listImages() {
     return createPromise(this, function (resolve, reject) {
       try {
-
         this.docker.listImages(function(err, data) {
           log.debug('\n\n:: docker-remote - listImages ::');
           log.debug(data);
           resolve(data);
         });
-
       } catch (err) {
-        log.error(err);
         reject(err);
       }
     });
@@ -79,14 +70,11 @@ class DockerRemote {
   getImage(imageId) {
     return createPromise(this, function (resolve, reject) {
       try {
-
         var image = this.docker.getImage(imageId);
         log.debug('\n\n:: docker-remote - image ::');
         log.debug(image);
         return resolve(image);
-
       } catch (err) {
-        log.error(err);
         reject(err);
       }
     });
@@ -95,7 +83,6 @@ class DockerRemote {
   inspectImage(image) {
     return createPromise(this, function (resolve, reject) {
       try {
-
         var handler = function (err, data) {
           if (err) {
             if (err.statusCode === 404) {
@@ -104,7 +91,6 @@ class DockerRemote {
 
             return reject(err);
           }
-
           log.debug('\n\n:: docker-remote - image inspect ::');
           log.debug(data);
           return resolve(data);
@@ -120,40 +106,31 @@ class DockerRemote {
 
   removeImage(imageId) {
     return async(this, function* () {
-
       var image = yield this.getImage(imageId);
-
       var handler = function (err, data) {
         if (err) {
           throw err;
         }
-
         log.debug('\n\n:: docker-remote - removeImage ::');
         log.debug(data);
         return data;
       };
-
       image.remove(handler);
-
     });
   }
 
   searchImages(imageName) {
     return createPromise(this, function (resolve, reject) {
       try {
-
         var handler = function (err, data) {
           if (err) {
             return reject(err);
           }
-
           log.debug('\n\n:: docker-remote - searchImages ::');
           log.debug(data);
           return resolve(data);
         };
-
         this.docker.searchImages({ term: imageName }, handler);
-
       } catch (err) {
         reject(err);
       }

@@ -4,7 +4,6 @@ var Requester = {
   request: function (context, options) {
     return createPromise(context, function (resolve, reject) {
       require('requestretry')(options, function (errorResult, responseResult, bodyResult) {
-        var error;
         if (responseResult && responseResult.statusCode === 200) {
           // ---------------------------------------
           // response.headers
@@ -26,23 +25,40 @@ var Requester = {
           };
           return resolve(result);
         } else {
-          if (!errorResult) {
-            var message = ['request error\n'];
-            message.push('[');
+          var message = [];
+          var error;
+
+          if (responseResult && responseResult.statusCode) {
             message.push(responseResult.statusCode);
-            message.push(']; ');
-            message.push('url: ');
-            message.push(options.url);
-            message.push('body: ');
-            message.push(bodyResult);
-            error = new Error(message.join(''));
-            error.code = responseResult.statusCode;
-            return reject(error);
-          } else {
-            return reject(errorResult);
           }
+          if (errorResult) {
+            message.push(errorResult.message);
+          }
+          message.push(': ');
+
+          if (options.namespace) {
+            message.push(options.namespace);
+          }
+          if (options.repository) {
+            message.push('/');
+            message.push(options.repository);
+          }
+          if (options.tag) {
+            message.push(':');
+            message.push(options.tag);
+          }
+
+          message.push(' >> url: ');
+          message.push(options.url);
+
+          error = new Error(message.join(''));
+
+          if (errorResult) {
+            error.code = errorResult.code;
+          }
+
+          return reject(error);
         }
-        return reject(error);
       });
     });
   },

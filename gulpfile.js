@@ -18,8 +18,3 @@ var dotenv = require('dotenv');
 dotenv.load({ silent: true });
 
 gulp.task('lint:babel', "Run lint and babel after this", ['lint', 'babel']);
-
-gulp.task('clean', function () {
-    return gulp.src('lib', {read: false})
-        .pipe(clean({force: true}));
-});

@@ -3,6 +3,7 @@
 ## 0.2.0
 
 * Enhancements
+  * [Features] removing all download and load features because is not working well
   * [Kernel] removing Q
   * [Kernel] removing q-io
   * [Kernel] including bluebird

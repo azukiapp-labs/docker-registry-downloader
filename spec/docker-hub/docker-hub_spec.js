@@ -42,6 +42,35 @@ describe('Docker Hub API', function() {
     });
   });
 
+  describe('errors', function () {
+
+    it('should get 404 error', function(done) {
+      return async(function* () {
+        yield dockerHub.images('azukiapp', 'azktclNOEXIST');
+      })
+      .catch(function (err) {
+        log.debug(err.message);
+        done();
+      });
+    });
+
+    it('should get timeout error', function(done) {
+      return async(function* () {
+        dockerHub.request_options = {
+          timeout: 100,
+          maxAttempts: 1,
+          retryDelay: 50
+        };
+        yield dockerHub.images('azukiapp', 'azktcl');
+      })
+      .catch(function (err) {
+        log.debug(err.message);
+        done();
+      });
+    });
+
+  });
+
   it('should get endpoind and token', function(done) {
     return async(function* () {
       var result = yield dockerHub.images('azukiapp', 'azktcl');
