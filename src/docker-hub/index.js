@@ -1,8 +1,9 @@
-var createPromise = require('../helpers/promises').createPromise;
-var request        = require('requestretry');
-var DOCKER_HUB_URL = 'https://index.docker.io';
-var log            = require('../helpers/logger');
-var _              = require('lodash');
+var createPromise   = require('../helpers/promises').createPromise;
+var promiseResolve  = require('../helpers/promises').promiseResolve;
+var request         = require('../helpers/requester').request;
+var DOCKER_HUB_URL  = 'https://index.docker.io';
+var log             = require('../helpers/logger');
+var _               = require('lodash');
 
 class DockerHub {
 
@@ -35,86 +36,50 @@ class DockerHub {
 
   images (namespace, repository) {
     var request_options_local = this.__request_options;
-    return createPromise(this, function (resolve, reject) {
-      var options = _.assign({
-          url: DOCKER_HUB_URL + '/v1/repositories/' + namespace + '/' + repository + '/images',
-          headers: {
-            'X-Docker-Token': 'true'
-          }
-        },
-        request_options_local
-      );
-      function callback(error, response/*, body*/) {
-        if (response.statusCode == 200) {
-          // ---------------------------------------
-          // response.headers
-          // ---------------------------------------
-          // X-Docker-Endpoints → registry-1.docker.io
-          // X-Docker-Token → signature=0aeea6bc91a4d1d0ff7892c9c101df17ce9c8a60,repository="azukiapp/azktcl",access=read
-          log.debug('\n\n:: docker-hub - images ::');
-          var result = {
-            namespace  : namespace,
-            repository : repository,
-            endpoint   : response.headers['x-docker-endpoints'],
-            token      : response.headers['x-docker-token'],
-          };
-          log.debug(result);
-          return resolve(result);
-        } else {
-          if (!error) {
-            var message = [response.statusCode];
-            if (response.statusCode === 404) {
-              message.push('image not available');
-            }
-            error = new Error(message.join(' - '));
-            error.code = response.statusCode;
-          }
-          reject(error);
-        }
-      }
-      request(options, callback);
-    });
+
+    var options = _.assign({
+      // request options
+      url: DOCKER_HUB_URL + '/v1/repositories/' + namespace + '/' + repository + '/images',
+      headers: {
+        'X-Docker-Token': 'true'
+      },
+      // docker options
+      namespace: namespace,
+      repository: repository
+    }, request_options_local);
+
+    return request(this, options);
   }
 
   search (query) {
-    var request_options_local = this.__request_options;
-    return createPromise(this, function (resolve, reject) {
-      var options = _.assign({
-          url: DOCKER_HUB_URL + '/v1/search',
-          qs: {
-            q: query
-          }
-        },
-        request_options_local
-      );
-      function callback(error, response, body) {
-        if (!error && response.statusCode == 200) {
-          // ---------------------------------------
-          // search body result
-          // ---------------------------------------
-          // {
-          //    "query":"azktcl",
-          //    "num_results":1,
-          //    "results":[
-          //       {
-          //          "is_automated":true,
-          //          "name":"azukiapp/azktcl",
-          //          "is_trusted":true,
-          //          "is_official":false,
-          //          "star_count":0,
-          //          "description":""
-          //       }
-          //    ]
-          // }
-          var result = JSON.parse(body);
-          log.debug('\n\n:: docker-hub - search ::');
-          log.debug(result);
-          resolve(result);
-        } else {
-          reject(error);
-        }
+    var options = _.assign({
+      url: DOCKER_HUB_URL + '/v1/search',
+      qs: {
+        q: query
       }
-      request(options, callback);
+    }, this.__request_options);
+    return request(this, options).then(function (requestResult) {
+      // ---------------------------------------
+      // search body result
+      // ---------------------------------------
+      // {
+      //    "query":"azktcl",
+      //    "num_results":1,
+      //    "results":[
+      //       {
+      //          "is_automated":true,
+      //          "name":"azukiapp/azktcl",
+      //          "is_trusted":true,
+      //          "is_official":false,
+      //          "star_count":0,
+      //          "description":""
+      //       }
+      //    ]
+      // }
+      var result = JSON.parse(requestResult.body);
+      log.debug('\n\n:: docker-hub - search ::');
+      log.debug(result);
+      return promiseResolve(result);
     });
   }
 

@@ -5,11 +5,12 @@
 	"node": true,
 
 	"predef": [
-        "before",
-        "after",
-        "beforeEach",
-        "afterEach",
-        "describe",
-        "it"
-    ]
+    "before",
+    "after",
+    "beforeEach",
+    "afterEach",
+    "describe",
+    "it"
+  ],
+	"-W030": true
 }
