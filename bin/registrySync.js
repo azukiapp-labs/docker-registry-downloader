@@ -6,7 +6,6 @@ var Syncronizer = libs.Syncronizer;
 var dockerHub   = new DockerHub();
 var syncronizer = new Syncronizer();
 
-
 var usage_message = ['',
   ' Usage:',
   '',
@@ -54,8 +53,7 @@ if (captureResult && captureResult.length === 4) {
   var namespace = captureResult[1];
   var repository = captureResult[2];
   var tag = captureResult[3];
-}
-else {
+} else {
   console.log(usage_message);
   process.exit(1);
 }
