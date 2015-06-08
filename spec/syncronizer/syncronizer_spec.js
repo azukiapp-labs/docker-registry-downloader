@@ -1,8 +1,7 @@
-require('source-map-support').install();
+import h from '../spec_helper';
 import Syncronizer from '../../src/syncronizer';
 import DockerHub   from '../../src/docker-hub';
 
-var chai     = require('chai');
 var Q        = require('q');
 var logError = require('../../src/helpers/error-helper');
 Q.onerror    = logError;
@@ -39,7 +38,7 @@ describe('Syncronizer', function() {
       var hubResult = yield dockerHub.images(namespace, repository);
 
       var result = yield syncronizer.compare(hubResult, tag);
-      chai.expect(result).to.not.be.undefined();
+      h.expect(result).to.not.be.undefined;
       done();
     });
   });
@@ -69,7 +68,7 @@ describe('Syncronizer', function() {
       // <><> UNMOCK dockerRemote.anscestors()
       syncronizer.dockerRemote.anscestors = original;
 
-      chai.expect(result).to.have.length(2);
+      h.expect(result).to.have.length(2);
       done();
     });
   });
@@ -86,7 +85,7 @@ describe('Syncronizer', function() {
       var hubResult = yield dockerHub.images(namespace, repository);
 
       var result = yield syncronizer.getSizes(hubResult, diffRuby21Layers);
-      chai.expect(result).to.not.be.undefined();
+      h.expect(result).to.not.be.undefined;
       done();
     });
   });
@@ -116,7 +115,7 @@ describe('Syncronizer', function() {
         imageIdList
       );
 
-      chai.expect(result).to.not.be.undefined();
+      h.expect(result).to.not.be.undefined;
       done();
     });
   });
@@ -146,7 +145,7 @@ describe('Syncronizer', function() {
         imageIdList
       );
 
-      chai.expect(result).to.not.be.undefined();
+      h.expect(result).to.not.be.undefined;
       done();
     });
   });
@@ -160,7 +159,7 @@ describe('Syncronizer', function() {
       var repository = 'azktcl';
       var hubResult  = yield dockerHub.images(namespace, repository);
       var result = yield syncronizer.setTags(hubResult);
-      chai.expect(result).to.not.be.undefined();
+      h.expect(result).to.not.be.undefined;
       done();
     });
   });
@@ -178,7 +177,7 @@ describe('Syncronizer', function() {
       var outputPath = __dirname + '/../../../spec/docker-registry/output';
       var result = yield syncronizer.sync(hubResult, tag, outputPath);
 
-      chai.expect(result).to.not.be.undefined();
+      h.expect(result).to.not.be.undefined;
       done();
     });
   });
@@ -195,7 +194,7 @@ describe('Syncronizer', function() {
       var tag = '0.0.1';
       var result = yield syncronizer.sync(hubResult, tag);
 
-      chai.expect(result).to.not.be.undefined();
+      h.expect(result).to.not.be.undefined;
       done();
     });
   });
@@ -216,8 +215,8 @@ describe('Syncronizer', function() {
 
         var layers_to_download = yield syncronizer.getTotalSize(hubResult, tag);
 
-        chai.expect(layers_to_download.layersCount).to.not.be.undefined();
-        chai.expect(layers_to_download.totalSize).to.not.be.undefined();
+        h.expect(layers_to_download.layersCount).to.not.be.undefined;
+        h.expect(layers_to_download.totalSize).to.not.be.undefined;
 
         done();
       });
@@ -245,7 +244,7 @@ describe('Syncronizer', function() {
     it('should get null when check an invalid local layer', function(done) {
       Q.spawn(function* () {
         var result = yield syncronizer.checkLocalLayer('invalid_layer_id');
-        chai.expect(result).to.be.null();
+        h.expect(result).to.be.null;
         done();
       });
     });
@@ -262,7 +261,7 @@ describe('Syncronizer', function() {
 
         var result = yield syncronizer.getLayersDiff(hubResult, tag);
 
-        chai.expect(result).to.not.be.undefined();
+        h.expect(result).to.not.be.undefined;
         done();
       });
     });
@@ -283,7 +282,7 @@ describe('Syncronizer', function() {
 
         var result = yield syncronizer.checkTotalLocalSizes(local_layers_to_check);
 
-        chai.expect(result).to.not.be.undefined();
+        h.expect(result).to.not.be.undefined;
         done();
       });
     });
@@ -304,7 +303,7 @@ describe('Syncronizer', function() {
 
         var result = yield syncronizer.checkTotalLocalCount(local_layers_to_check);
 
-        chai.expect(result).to.not.be.undefined();
+        h.expect(result).to.not.be.undefined;
         done();
       });
     });

@@ -1,10 +1,8 @@
-require('source-map-support').install();
-
+import h from '../spec_helper';
 import FsHelper       from '../../src/fs-helper';
 import DockerHub      from '../../src/docker-hub';
 import DockerRegistry from '../../src/docker-registry';
 
-var chai     = require('chai');
 var Q        = require('q');
 var path     = require('path');
 var logError = require('../../src/helpers/error-helper');
@@ -43,8 +41,8 @@ describe('Docker Registry API', function() {
 
       var result = yield dockerRegistry.tags(hubResultAzktcl);
 
-      chai.expect(result).to.include.keys('0.0.1');
-      chai.expect(result).to.include.keys('0.0.2');
+      h.expect(result).to.include.keys('0.0.1');
+      h.expect(result).to.include.keys('0.0.2');
       done();
     });
   });
@@ -63,7 +61,7 @@ describe('Docker Registry API', function() {
         done('should get error: ETIMEDOUT');
       }
       catch (err) {
-        chai.expect(err.code).to.equal('ETIMEDOUT');
+        h.expect(err.code).to.equal('ETIMEDOUT');
         done();
       }
     });
@@ -83,10 +81,10 @@ describe('Docker Registry API', function() {
       };
       var result = yield dockerRegistry.tags(hubResultNode);
 
-      chai.expect(result).to.include.keys('0.8');
-      chai.expect(result).to.include.keys('0.10');
-      chai.expect(result).to.include.keys('0.11');
-      chai.expect(result).to.include.keys('latest');
+      h.expect(result).to.include.keys('0.8');
+      h.expect(result).to.include.keys('0.10');
+      h.expect(result).to.include.keys('0.11');
+      h.expect(result).to.include.keys('latest');
       done();
     });
   });
@@ -98,7 +96,7 @@ describe('Docker Registry API', function() {
       var result = yield dockerRegistry.getImageIdByTag(hubResultAzktcl,
                                                         tag);
 
-      chai.expect(result).to.not.be.undefined();
+      h.expect(result).to.not.be.undefined;
       done();
     });
   });
@@ -109,7 +107,7 @@ describe('Docker Registry API', function() {
       var result = yield dockerRegistry.ancestry(hubResultAzktcl,
         'afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120');
 
-      chai.expect(result).to.have.length.above(7);
+      h.expect(result).to.have.length.above(7);
       done();
     });
   });
@@ -120,8 +118,8 @@ describe('Docker Registry API', function() {
       var result = yield dockerRegistry.imageJson(hubResultAzktcl,
         '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303');
 
-      chai.expect(result.id).to.eql('15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303');
-      chai.expect(result.os).to.eql('linux');
+      h.expect(result.id).to.eql('15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303');
+      h.expect(result.os).to.eql('linux');
       done();
     });
   });
@@ -133,7 +131,7 @@ describe('Docker Registry API', function() {
 
       var result = yield dockerRegistry.allAnscestorByTag(hubResultAzktcl, tag);
 
-      chai.expect(result).to.have.length.above(7);
+      h.expect(result).to.have.length.above(7);
       done();
     });
   });
@@ -144,7 +142,7 @@ describe('Docker Registry API', function() {
       var imageId_5 = '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303';
       var result = yield Q.nfcall(dockerRegistry.downloadImageGetSize(hubResultAzktcl, imageId_5));
 
-      chai.expect(result).to.eql(3069677);
+      h.expect(result).to.eql(3069677);
       done();
     });
   });
@@ -165,7 +163,7 @@ describe('Docker Registry API', function() {
                                                       fullPath,
                                                       imageId_5);
 
-      chai.expect(result).to.eql(fullPath);
+      h.expect(result).to.eql(fullPath);
       done();
     });
   });
@@ -179,7 +177,7 @@ describe('Docker Registry API', function() {
         __dirname + '/../../../spec/docker-registry/output',
         '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303');
 
-      chai.expect(result).to.not.be.undefined();
+      h.expect(result).to.not.be.undefined;
       done();
     });
   });

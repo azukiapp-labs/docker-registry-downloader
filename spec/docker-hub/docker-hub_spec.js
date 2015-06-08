@@ -1,7 +1,5 @@
-require('source-map-support').install();
+import h from '../spec_helper';
 import DockerHub from '../../src/docker-hub';
-
-var chai     = require('chai');
 var Q        = require('q');
 var log      = require('../../src/helpers/logger');
 var logError = require('../../src/helpers/error-helper');
@@ -34,7 +32,7 @@ describe('Docker Hub API', function() {
 
     Q.spawn(function* () {
       var result = yield dockerHub.auth('azukiapp', docker_user, docker_pass);
-      chai.expect(result).to.have.length(2);
+      h.expect(result).to.have.length(2);
       done();
     });
   });
@@ -42,8 +40,8 @@ describe('Docker Hub API', function() {
   it('should search for azktcl', function(done) {
     Q.spawn(function* () {
       var result = yield dockerHub.search('azktcl');
-      chai.expect(result.results).to.have.length.above(0);
-      chai.expect(result.results[0].name).to.equal('azukiapp/azktcl');
+      h.expect(result.results).to.have.length.above(0);
+      h.expect(result.results[0].name).to.equal('azukiapp/azktcl');
       done();
     });
   });
@@ -51,10 +49,10 @@ describe('Docker Hub API', function() {
   it('should get endpoind and token', function(done) {
     Q.spawn(function* () {
       var result = yield dockerHub.images('azukiapp', 'azktcl');
-      chai.expect(result.namespace).to.equal('azukiapp');
-      chai.expect(result.repository).to.equal('azktcl');
-      chai.expect(result.endpoint).to.not.be.undefined();
-      chai.expect(result.token).to.not.be.undefined();
+      h.expect(result.namespace).to.equal('azukiapp');
+      h.expect(result.repository).to.equal('azktcl');
+      h.expect(result.endpoint).to.not.be.undefined;
+      h.expect(result.token).to.not.be.undefined;
       done();
     });
   });
