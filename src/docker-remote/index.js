@@ -1,9 +1,10 @@
-var Docker = require('dockerode');
-var fs     = require('fs');
-var Q      = require('q');
-var log    = require('../helpers/logger');
-var path   = require('path');
-var _      = require('lodash');
+var Docker        = require('dockerode');
+var fs            = require('fs');
+var createPromise = require('../helpers/promises').createPromise;
+var async         = require('../helpers/promises').async;
+var log           = require('../helpers/logger');
+var path          = require('path');
+var _             = require('lodash');
 
 class DockerRemote {
 
@@ -25,7 +26,7 @@ class DockerRemote {
   }
 
   listActiveContainers() {
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
       try {
 
         this.docker.listContainers({all: false}, function(err, containers) {
@@ -38,11 +39,11 @@ class DockerRemote {
         log.error(err);
         reject(err);
       }
-    }.bind(this));
+    });
   }
 
   listAllContainers() {
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
       try {
 
         this.docker.listContainers({all: true}, function(err, containers) {
@@ -55,11 +56,11 @@ class DockerRemote {
         log.error(err);
         reject(err);
       }
-    }.bind(this));
+    });
   }
 
   listImages() {
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
       try {
 
         this.docker.listImages(function(err, data) {
@@ -72,11 +73,11 @@ class DockerRemote {
         log.error(err);
         reject(err);
       }
-    }.bind(this));
+    });
   }
 
   getImage(imageId) {
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
       try {
 
         var image = this.docker.getImage(imageId);
@@ -88,11 +89,11 @@ class DockerRemote {
         log.error(err);
         reject(err);
       }
-    }.bind(this));
+    });
   }
 
   inspectImage(image) {
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
       try {
 
         var handler = function (err, data) {
@@ -114,11 +115,11 @@ class DockerRemote {
       } catch (err) {
         reject(err);
       }
-    }.bind(this));
+    });
   }
 
   removeImage(imageId) {
-    return Q.async(function* () {
+    return async(this, function* () {
 
       var image = yield this.getImage(imageId);
 
@@ -134,11 +135,11 @@ class DockerRemote {
 
       image.remove(handler);
 
-    }.bind(this))();
+    });
   }
 
   searchImages(imageName) {
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
       try {
 
         var handler = function (err, data) {
@@ -156,11 +157,11 @@ class DockerRemote {
       } catch (err) {
         reject(err);
       }
-    }.bind(this));
+    });
   }
 
   searchImagesByTag(tagName) {
-    return Q.async(function* () {
+    return async(this, function* () {
       // get all images
       var allImages = yield this.listImages();
 
@@ -174,11 +175,11 @@ class DockerRemote {
       log.debug('\n\n:: docker-remote - searchImagesByTag ::');
       log.debug(imagesFound);
       return imagesFound;
-    }.bind(this))();
+    });
   }
 
   getParent(imageId) {
-    return Q.async(function* () {
+    return async(this, function* () {
       var currentImage = yield this.getImage(imageId);
       var imageInspect = yield this.inspectImage(currentImage);
 
@@ -195,11 +196,11 @@ class DockerRemote {
         image        : currentImage,
         imageInspect : imageInspect
       });
-    }.bind(this))();
+    });
   }
 
   anscestors(firstImageId) {
-    return Q.async(function* () {
+    return async(this, function* () {
       var currentImageId = firstImageId;
       var anscestors = [];
 
@@ -220,11 +221,11 @@ class DockerRemote {
       var imageInspectors = _.pluck(anscestors, 'imageInspect');
       log.debug(_.pluck(imageInspectors, 'Id'));
       return anscestors;
-    }.bind(this))();
+    });
   }
 
   loadImage(outputPath, imageId) {
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
       try {
 
         var outputLoadPath = path.join(outputPath, imageId + '.tar');
@@ -243,11 +244,11 @@ class DockerRemote {
       } catch (err) {
         reject(err);
       }
-    }.bind(this));
+    });
   }
 
   setImageTag(namespace, repository, imageId, tagName) {
-    return Q.async(function* () {
+    return async(this, function* () {
       var image = yield this.docker.getImage(imageId);
 
       // check if the image exists
@@ -269,7 +270,7 @@ class DockerRemote {
         }
         return data;
       });
-    }.bind(this))();
+    });
   }
 
 }

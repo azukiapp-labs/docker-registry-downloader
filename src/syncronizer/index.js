@@ -1,22 +1,17 @@
 import DockerHub      from '../docker-hub';
 import DockerRegistry from '../docker-registry';
 import DockerRemote   from '../docker-remote';
-import FsHelper       from '../fs-helper';
+import fsAsync        from '../helpers/file_async';
+import { async }      from '../helpers/promises';
 
 var path        = require('path');
-var Q           = require('q');
+var createPromise = require('../helpers/promises').createPromise;
 var log         = require('../helpers/logger');
 var _           = require('lodash');
 var prettyBytes = require('pretty-bytes');
-var async       = require('async');
+var asyncLib    = require('async');
 var ProgressBar = require('progress');
 var os          = require('os');
-var fsHelper    = new FsHelper();
-
-Q.onerror = function(title, err) {
-  log.error('\n\n', title, err);
-  throw err;
-};
 
 class Syncronizer {
 
@@ -27,7 +22,7 @@ class Syncronizer {
   }
 
   compare(hubResult, tag) {
-    return Q.async(function* () {
+    return async(this, function* () {
       // get endpoint and token from docker hub
       var imageId = yield this.dockerRegistry.getImageIdByTag(hubResult, tag);
 
@@ -63,11 +58,11 @@ class Syncronizer {
       log.debug(diff);
       log.info('    diff images:', diff.length);
       return diff;
-    }.bind(this))();
+    });
   }
 
   getSizes(hubResult, layersList) {
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
       try {
         var allChecks = [];
 
@@ -76,7 +71,7 @@ class Syncronizer {
           allChecks.push(this.dockerRegistry.downloadImageGetSize(hubResult, layerID));
         }
 
-        async.parallelLimit(allChecks, 10,
+        asyncLib.parallelLimit(allChecks, 10,
         function(err, results) {
           if (err) {
             return reject(err);
@@ -95,34 +90,34 @@ class Syncronizer {
         log.error(err.stack);
         reject(err);
       }
-    }.bind(this));
+    });
   }
 
   checkDownloadedFiles(layersList, outputPath) {
-    return Q.async(function* () {
+    return async(this, function* () {
 
       var layerToDownload = [];
 
       for (var i = 0; i < layersList.length; i++) {
         var layerID = layersList[i];
         var filename = path.join(outputPath, layerID + '.tar');
-        var fileExists = yield fsHelper.fsExists(filename);
+        var fileExists = yield fsAsync.exists(filename);
         if (!fileExists) {
           layerToDownload.push(layerID);
         }
       }
 
       return layerToDownload;
-    }.bind(this))();
+    });
   }
 
   downloadCallback(hubResult, outputPath, imageId, iProgress) {
     return function (callback) {
       try {
-        Q.spawn(function* () {
+        return async(this, function* () {
           callback(null, yield this.dockerRegistry.prepareLoading(
             hubResult, outputPath, imageId, iProgress));
-        }.bind(this));
+        });
       } catch (err) {
         log.error(err.stack);
       }
@@ -131,13 +126,13 @@ class Syncronizer {
 
   loadCallback(hubResult, outputPath, imageId, iProgress) {
     return function (callback) {
-      Q.async(function* () {
+      return async(this, function* () {
         var result = yield this.dockerRemote.loadImage(outputPath, imageId);
         if (iProgress) {
           iProgress(1);
         }
         callback(null, result);
-      }.bind(this))();
+      });
     }.bind(this);
   }
 
@@ -146,7 +141,7 @@ class Syncronizer {
   // outputPath  : local folder to save
   // imageIdList : all IDs to download
   downloadList(hubResult, outputPath, imageIdList, iProgress) {
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
       try {
         var allDownloads = [];
 
@@ -156,7 +151,7 @@ class Syncronizer {
         }
 
         // download
-        async.parallelLimit(allDownloads, 6,
+        asyncLib.parallelLimit(allDownloads, 6,
           function(err, results) {
             log.debug('\n\n:: syncronizer - downloadAndLoadList ::');
             log.debug('outputs:', results);
@@ -169,7 +164,7 @@ class Syncronizer {
         reject(err);
       }
 
-    }.bind(this));
+    });
   }
 
   loadList(hubResult, outputPath, imageIdList, iProgress) {
@@ -179,7 +174,7 @@ class Syncronizer {
     //   outputPath  : local folder to save
     //   imageIdList : all IDs to download
     // }
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
       try {
         var allLoads = [];
 
@@ -189,7 +184,7 @@ class Syncronizer {
         }
 
         // load
-        async.parallelLimit(allLoads, 1,
+        asyncLib.parallelLimit(allLoads, 1,
           function(err, results) {
             log.debug('\n\n:: syncronizer - downloadAndLoadList ::');
             log.debug('outputs:', results);
@@ -202,11 +197,11 @@ class Syncronizer {
         reject(err);
       }
 
-    }.bind(this));
+    });
   }
 
   setTags(hubResult) {
-    return Q.async(function* () {
+    return async(this, function* () {
 
       // get all tags
       var tags = yield this.dockerRegistry.tags(hubResult);
@@ -227,13 +222,13 @@ class Syncronizer {
       }
 
       return results;
-    }.bind(this))();
+    });
 
   }
 
   sync(hubResult, tag, outputPath, forceOverwrite) {
     var progressMessage, bar, iProgress;
-    return Q.async(function* () {
+    return async(this, function* () {
 
       if (!outputPath) {
         // no folder was sent, set to /tmp
@@ -304,15 +299,15 @@ class Syncronizer {
       // }
 
       return true;
-    }.bind(this))();
+    });
   }
 
   createAndCleanTempDir(dir) {
-    return fsHelper.createCleanFolder(dir);
+    return fsAsync.mkdirp(dir);
   }
 
   createTempDir(dir) {
-    return fsHelper.createFolder(dir);
+    return fsAsync.mkdirp(dir);
   }
 
   getOsTempDir(folderName) {
@@ -321,13 +316,13 @@ class Syncronizer {
   }
 
   removeTempDir(dir) {
-    return fsHelper.removeDirRecursive(dir);
+    return fsAsync.remove(dir);
   }
 
   getTotalSize(hubResult, tag) {
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
       try {
-        Q.spawn(function* () {
+        return async(this, function* () {
 
           var imageFullName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
           log.info('comparing docker registry with local images...');
@@ -347,16 +342,16 @@ class Syncronizer {
             totalSize  : totalSize
           });
 
-        }.bind(this));
+        });
       } catch (err) {
         log.error(err.stack);
         reject(err);
       }
-    }.bind(this));
+    });
   }
 
   getTotalLocalSize(hubResult, tag) {
-    return Q.async(function* () {
+    return async(this, function* () {
 
       // get from local docker
       var fullTagName = hubResult.namespace + '/' + hubResult.repository + ':' + tag;
@@ -386,11 +381,11 @@ class Syncronizer {
         localAncestors   : localAncestors,
         imagesFound      : imagesFound,
       });
-    }.bind(this))();
+    });
   }
 
   getAllLayersFromRegistry(hubResult, tag) {
-    return Q.async(function* () {
+    return async(this, function* () {
       // get endpoint and token from docker hub
       var imageId = yield this.dockerRegistry.getImageIdByTag(hubResult, tag);
       var registryAncestors = yield this.dockerRegistry.ancestry(hubResult, imageId);
@@ -400,19 +395,19 @@ class Syncronizer {
         image_id        : imageId,
         registry_layers : registryAncestors
       });
-    }.bind(this))();
+    });
   }
 
   checkLocalLayer(image_id) {
-    return Q.async(function* () {
+    return async(this, function* () {
       var image = yield this.dockerRemote.getImage(image_id);
       var inspected_image = yield this.dockerRemote.inspectImage(image);
       return inspected_image;
-    }.bind(this))();
+    });
   }
 
   getLayersDiff(hubResult, tag) {
-    return Q.async(function* () {
+    return async(this, function* () {
       var registry_result = yield this.getAllLayersFromRegistry(hubResult, tag);
       var registry_layers_ids = registry_result.registry_layers;
 
@@ -430,11 +425,11 @@ class Syncronizer {
         registry_layers_ids      : registry_layers_ids,
         non_existent_locally_ids : non_existent_locally_ids,
       });
-    }.bind(this))();
+    });
   }
 
   checkTotalLocalSizes(layers_id_list) {
-    return Q.async(function* () {
+    return async(this, function* () {
       var sum_sizes = 0;
 
       for (var i = 0; i < layers_id_list.length; i++) {
@@ -447,11 +442,11 @@ class Syncronizer {
 
       return sum_sizes;
 
-    }.bind(this))();
+    });
   }
 
   checkTotalLocalCount(layers_id_list) {
-    return Q.async(function* () {
+    return async(this, function* () {
       var sum_count = 0;
 
       for (var i = 0; i < layers_id_list.length; i++) {
@@ -463,7 +458,7 @@ class Syncronizer {
       }
 
       return sum_count;
-    }.bind(this))();
+    });
   }
 
 }

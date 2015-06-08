@@ -1,16 +1,13 @@
 import h from '../spec_helper';
 import DockerRemote from '../../src/docker-remote';
-
-var Q        = require('q');
-var logError = require('../../src/helpers/error-helper');
-Q.onerror    = logError;
+import { async }   from '../../src/helpers/promises';
 
 describe('Docker Remote API', function() {
 
   var dockerRemote = new DockerRemote();
 
   it('should get all containers', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
       var result = yield dockerRemote.listAllContainers();
       h.expect(result).to.not.be.undefined;
       done();
@@ -18,7 +15,7 @@ describe('Docker Remote API', function() {
   });
 
   it('should get only active containers', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
       var result = yield dockerRemote.listActiveContainers();
       h.expect(result).to.not.be.undefined;
       done();
@@ -26,7 +23,7 @@ describe('Docker Remote API', function() {
   });
 
   it('should list all images', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
       var result = yield dockerRemote.listImages();
       h.expect(result).to.not.be.undefined;
       done();
@@ -34,7 +31,7 @@ describe('Docker Remote API', function() {
   });
 
   it('should inpect one image', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
       var image = yield dockerRemote.getImage('afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120');
       var result = yield dockerRemote.inspectImage(image);
       h.expect(result).to.not.be.undefined;
@@ -43,7 +40,7 @@ describe('Docker Remote API', function() {
   });
 
   it('should searchImages from tag', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
       var result = yield dockerRemote.searchImagesByTag('azukiapp/azktcl:0.0.2');
       h.expect(result).to.not.be.undefined;
       done();
@@ -51,7 +48,7 @@ describe('Docker Remote API', function() {
   });
 
   it('should get parent image ID', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
       var result = yield dockerRemote.getParent('afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120');
       h.expect(result).to.not.be.undefined;
       done();
@@ -59,7 +56,7 @@ describe('Docker Remote API', function() {
   });
 
   it('should get all parents images ID', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
       var result = yield dockerRemote.anscestors('afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120');
       h.expect(result).to.not.be.undefined;
       done();
@@ -67,7 +64,7 @@ describe('Docker Remote API', function() {
   });
 
   // it('should load an image', function(done) {
-  //   Q.spawn(function* () {
+  //   return async(function* () {
   //     var filePath = path.join(__dirname, '../../..', 'spec/docker-registry/output/15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303.tar');
   //     var result = yield dockerRemote.loadImage(filePath);
   //     h.expect(result).to.not.be.undefined;

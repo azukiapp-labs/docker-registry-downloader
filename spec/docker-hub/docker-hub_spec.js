@@ -1,14 +1,10 @@
-import h from '../spec_helper';
-import DockerHub from '../../src/docker-hub';
-var Q        = require('q');
-var log      = require('../../src/helpers/logger');
-var logError = require('../../src/helpers/error-helper');
-Q.onerror    = logError;
+import h           from '../spec_helper';
+import DockerHub   from '../../src/docker-hub';
+import { async }   from '../../src/helpers/promises';
+var log = require('../../src/helpers/logger');
 
 describe('Docker Hub API', function() {
-
   var dockerHub = new DockerHub();
-
   beforeEach(function() {
     dockerHub.request_options = {
       timeout: 20000,
@@ -30,7 +26,7 @@ describe('Docker Hub API', function() {
       return done();
     }
 
-    Q.spawn(function* () {
+    return async(function* () {
       var result = yield dockerHub.auth('azukiapp', docker_user, docker_pass);
       h.expect(result).to.have.length(2);
       done();
@@ -38,7 +34,7 @@ describe('Docker Hub API', function() {
   });
 
   it('should search for azktcl', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
       var result = yield dockerHub.search('azktcl');
       h.expect(result.results).to.have.length.above(0);
       h.expect(result.results[0].name).to.equal('azukiapp/azktcl');
@@ -47,7 +43,7 @@ describe('Docker Hub API', function() {
   });
 
   it('should get endpoind and token', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
       var result = yield dockerHub.images('azukiapp', 'azktcl');
       h.expect(result.namespace).to.equal('azukiapp');
       h.expect(result.repository).to.equal('azktcl');

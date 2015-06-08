@@ -1,4 +1,4 @@
-import { async, promisifyAll } from 'azk/utils/promises';
+import { async, promisifyAll, createPromise } from './promises';
 var fs = require('fs-extra');
 
 promisifyAll(fs);
@@ -26,10 +26,25 @@ var FileAsync = {
     });
   },
 
-  /**
-   * glob :: glob
-  */
-  glob: require('glob'),
+  tarPack(folderToPack, outputTarfile) {
+    return createPromise(null, function (resolve, reject) {
+      try {
+        var write = fs.createWriteStream;
+        var pack = require('tar-pack').pack;
+        pack(folderToPack)
+          .pipe(write(outputTarfile))
+          .on('error', function (err) {
+            reject(err);
+          })
+          .on('close', function () {
+            resolve(true);
+          });
+      } catch (err) {
+        reject(err);
+      }
+    });
+
+  },
 
   // other fs & fs-extra methods
   appendFile:        (...args) => { return fs.appendFileAsync(...args); },

@@ -1,6 +1,6 @@
+var createPromise = require('../helpers/promises').createPromise;
 var request        = require('requestretry');
 var DOCKER_HUB_URL = 'https://index.docker.io';
-var Q              = require('q');
 var log            = require('../helpers/logger');
 var _              = require('lodash');
 
@@ -19,7 +19,7 @@ class DockerHub {
   }
 
   auth (namespace, user, password) {
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
       var url = DOCKER_HUB_URL + '/v1/repositories/' + namespace + '/auth';
       request.get(url).auth(user, password, false, function (error, response/*, body*/) {
         if (!error && response.statusCode == 200) {
@@ -35,7 +35,7 @@ class DockerHub {
 
   images (namespace, repository) {
     var request_options_local = this.__request_options;
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
       var options = _.assign({
           url: DOCKER_HUB_URL + '/v1/repositories/' + namespace + '/' + repository + '/images',
           headers: {
@@ -78,7 +78,7 @@ class DockerHub {
 
   search (query) {
     var request_options_local = this.__request_options;
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
       var options = _.assign({
           url: DOCKER_HUB_URL + '/v1/search',
           qs: {

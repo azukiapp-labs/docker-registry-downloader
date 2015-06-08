@@ -1,10 +1,7 @@
 import h from '../spec_helper';
 import Syncronizer from '../../src/syncronizer';
 import DockerHub   from '../../src/docker-hub';
-
-var Q        = require('q');
-var logError = require('../../src/helpers/error-helper');
-Q.onerror    = logError;
+import { createPromise, async }   from '../../src/helpers/promises';
 
 var syncronizer = new Syncronizer();
 
@@ -28,7 +25,7 @@ describe('Syncronizer', function() {
 
   it('should compare local and registry layers', function(done) {
 
-    Q.spawn(function* () {
+    return async(function* () {
       var namespace = 'library';
       var repository = 'ruby';
       var tag = '2.1';
@@ -45,7 +42,7 @@ describe('Syncronizer', function() {
 
   it('should sync only few layers from azukiapp/azktcl:0.0.1', function(done) {
     this.timeout(30000);
-    Q.spawn(function* () {
+    return async(function* () {
 
       var namespace  = 'azukiapp';
       var repository = 'azktcl';
@@ -57,7 +54,7 @@ describe('Syncronizer', function() {
       // <><> MOCK dockerRemote.anscestors()
       var original = syncronizer.dockerRemote.anscestors;
       syncronizer.dockerRemote.anscestors = function() {
-        return new Q.Promise(function (resolve/*, reject, notify*/) {
+        return new createPromise(this, function (resolve) {
           resolve(require('../stubs/anscestors').simulate_old_azktcl_0_0_1);
         });
       };
@@ -76,7 +73,7 @@ describe('Syncronizer', function() {
   it('should sum all sizes', function(done) {
     this.timeout(15000);
 
-    Q.spawn(function* () {
+    return async(function* () {
 
       var namespace = 'library';
       var repository = 'ruby';
@@ -92,7 +89,7 @@ describe('Syncronizer', function() {
 
   it('should download several layers', function(done) {
     this.timeout(18000);
-    Q.spawn(function* () {
+    return async(function* () {
 
       var dockerHub  = new DockerHub();
       var namespace  = 'azukiapp';
@@ -122,7 +119,7 @@ describe('Syncronizer', function() {
 
   it('should load several layers', function(done) {
     this.timeout(18000);
-    Q.spawn(function* () {
+    return async(function* () {
 
       var dockerHub  = new DockerHub();
       var namespace  = 'azukiapp';
@@ -152,7 +149,7 @@ describe('Syncronizer', function() {
 
   it('should tag local layers', function(done) {
     this.timeout(3000);
-    Q.spawn(function* () {
+    return async(function* () {
 
       var dockerHub  = new DockerHub();
       var namespace  = 'azukiapp';
@@ -166,7 +163,7 @@ describe('Syncronizer', function() {
 
   it('should sync azukiapp/azktcl:0.0.1', function(done) {
     this.timeout(30000);
-    Q.spawn(function* () {
+    return async(function* () {
 
       var namespace  = 'azukiapp';
       var repository = 'azktcl';
@@ -184,7 +181,7 @@ describe('Syncronizer', function() {
 
   it('should sync azukiapp/azktcl:0.0.1 on OS temp folder', function(done) {
     this.timeout(30000);
-    Q.spawn(function* () {
+    return async(function* () {
 
       var namespace  = 'azukiapp';
       var repository = 'azktcl';
@@ -204,7 +201,7 @@ describe('Syncronizer', function() {
     it('should get total size', function(done) {
       this.timeout(15000);
 
-      Q.spawn(function* () {
+      return async(function* () {
 
         var namespace = 'saitodisse';
         var repository = '10mblayers';
@@ -225,7 +222,7 @@ describe('Syncronizer', function() {
     it('should get local total size', function(done) {
       this.timeout(150000);
       var getSize = function() {
-        Q.spawn(function* () {
+        return async(function* () {
 
           var total_local_size = yield syncronizer.getTotalLocalSize({
             namespace : 'saitodisse',
@@ -237,12 +234,12 @@ describe('Syncronizer', function() {
         });
       };
 
-      getSize();
+      return getSize();
 
     });
 
     it('should get null when check an invalid local layer', function(done) {
-      Q.spawn(function* () {
+      return async(function* () {
         var result = yield syncronizer.checkLocalLayer('invalid_layer_id');
         h.expect(result).to.be.null;
         done();
@@ -250,7 +247,7 @@ describe('Syncronizer', function() {
     });
 
     it('should get diff from registry and local layers', function(done) {
-      Q.spawn(function* () {
+      return async(function* () {
 
         var namespace = 'saitodisse';
         var repository = '10mblayers';
@@ -267,7 +264,7 @@ describe('Syncronizer', function() {
     });
 
     it('should check size of local all selected layers', function(done) {
-      Q.spawn(function* () {
+      return async(function* () {
 
         var local_layers_to_check = [ 'e8f08a5f551055074246712d662a570dd0c77267431179e6be4d67cd982c0e45',
           'beadc5a63bb040b3db1aaaca341dc671e4a6c2d4e8225922547810ba7cc09c5b',
@@ -288,7 +285,7 @@ describe('Syncronizer', function() {
     });
 
     it('should count local layers', function(done) {
-      Q.spawn(function* () {
+      return async(function* () {
 
         var local_layers_to_check = [ 'e8f08a5f551055074246712d662a570dd0c77267431179e6be4d67cd982c0e45',
           'beadc5a63bb040b3db1aaaca341dc671e4a6c2d4e8225922547810ba7cc09c5b',

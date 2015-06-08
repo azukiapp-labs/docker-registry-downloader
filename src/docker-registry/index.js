@@ -1,14 +1,15 @@
-import FsHelper from '../fs-helper';
+require('source-map-support').install();
 
-var request     = require('requestretry');
-var Q           = require('q');
-var log         = require('../helpers/logger');
-var fs          = require('fs');
-var path        = require('path');
-var prettyBytes = require('pretty-bytes');
-var _           = require('lodash');
-
-var fsHelper = new FsHelper();
+var fsAsync       = require('../helpers/file_async');
+var request       = require('requestretry');
+var createPromise = require('../helpers/promises').createPromise;
+var async         = require('../helpers/promises').async;
+var nfcall        = require('../helpers/promises').nfcall;
+var log           = require('../helpers/logger');
+var fs            = require('fs');
+var path          = require('path');
+var prettyBytes   = require('pretty-bytes');
+var _             = require('lodash');
 
 class DockerRegistry {
 
@@ -26,7 +27,7 @@ class DockerRegistry {
 
   tags(hubResult) {
     var request_options_local = this.__request_options;
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
 
       var options = _.assign({
           url: 'https://' + hubResult.endpoint + '/v1/repositories/' +
@@ -61,7 +62,7 @@ class DockerRegistry {
 
   getImageIdByTag(hubResult, tag) {
     var request_options_local = this.__request_options;
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
 
       var options = _.assign({
           url: 'https://' + hubResult.endpoint + '/v1/repositories/' + hubResult.namespace +
@@ -89,7 +90,7 @@ class DockerRegistry {
 
   ancestry(hubResult, imageId) {
     var request_options_local = this.__request_options;
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
 
       var options = _.assign({
           url: 'https://' + hubResult.endpoint + '/v1/images/' + imageId + '/ancestry',
@@ -132,7 +133,7 @@ class DockerRegistry {
 
   imageJson(hubResult, imageId) {
     var request_options_local = this.__request_options;
-    return new Q.Promise(function (resolve, reject) {
+    return createPromise(this, function (resolve, reject) {
 
       var options = _.assign({
           url: 'https://' + hubResult.endpoint + '/v1/images/' + imageId + '/json',
@@ -177,7 +178,7 @@ class DockerRegistry {
   }
 
   allAnscestorByTag(hubResult, tag) {
-    return Q.async(function* () {
+    return async(this, function* () {
       log.debug('\n\n:: docker-registry - allAnscestorByTag ::');
       log.debug('endpoint:', hubResult.endpoint);
       log.debug('token:', hubResult.token);
@@ -192,7 +193,7 @@ class DockerRegistry {
       var anscestors = yield this.ancestry(hubResult, imageId);
 
       return anscestors;
-    }.bind(this))();
+    });
   }
 
   downloadImageGetSize(hubResult, imageId) {
@@ -223,7 +224,7 @@ class DockerRegistry {
 
   downloadImage(hubResult, outputPath, imageId, iProgress) {
     var request_options_local = this.__request_options;
-    return new Q.Promise(function (resolve/*, reject*/) {
+    return createPromise(this, function (resolve/*, reject*/) {
 
       var options = _.assign({
           url: 'https://' + hubResult.endpoint + '/v1/images/' + imageId + '/layer',
@@ -258,32 +259,32 @@ class DockerRegistry {
 
   // http://docs.docker.com/reference/api/docker_remote_api_v1.16/#load-a-tarball-with-a-set-of-images-and-tags-into-docker
   prepareLoading(hubResult, outputPath, imageId, iProgress) {
-    return Q.async(function* () {
+    return async(this, function* () {
       // An image tarball contains one directory per image layer (named using its long ID)
       var outputLoadPath = path.join(outputPath, imageId);
-      yield fsHelper.createCleanFolder(outputLoadPath);
+      yield fsAsync.mkdirp(outputLoadPath);
 
       // VERSION: currently 1.0 - the file format version
       var versionFilePath = path.join(outputLoadPath, "VERSION");
-      yield Q.nfcall(fs.writeFile, versionFilePath, "1.0");
+      yield nfcall(fs.writeFile, versionFilePath, "1.0");
 
       // json: detailed layer information, similar to docker inspect layer_id
       var jsonResult = yield this.imageJson(hubResult, imageId);
       var jsonFilePath = path.join(outputLoadPath, "json");
-      yield Q.nfcall(fs.writeFile, jsonFilePath, JSON.stringify(jsonResult, ' ', 3));
+      yield nfcall(fs.writeFile, jsonFilePath, JSON.stringify(jsonResult, ' ', 3));
 
       // layer.tar: A tarfile containing the filesystem changes in this layer
       var layerTarFilePath = path.join(outputLoadPath, "layer.tar");
       yield this.downloadImage(hubResult, layerTarFilePath, imageId, iProgress);
 
       // create tar file
-      yield fsHelper.tarPack(outputLoadPath, path.join(outputLoadPath, '..', imageId + '.tar'));
+      yield fsAsync.tarPack(outputLoadPath, path.join(outputLoadPath, '..', imageId + '.tar'));
 
       // remove folder
-      yield fsHelper.removeDirRecursive(outputLoadPath);
+      yield fsAsync.remove(outputLoadPath);
 
       return outputLoadPath;
-    }.bind(this))();
+    });
   }
 
 }

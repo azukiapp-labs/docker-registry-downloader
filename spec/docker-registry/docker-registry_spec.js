@@ -1,13 +1,9 @@
 import h from '../spec_helper';
-import FsHelper       from '../../src/fs-helper';
+import fsAsync        from '../../src/helpers/file_async';
 import DockerHub      from '../../src/docker-hub';
 import DockerRegistry from '../../src/docker-registry';
-
-var Q        = require('q');
+import { async, nfcall }   from '../../src/helpers/promises';
 var path     = require('path');
-var logError = require('../../src/helpers/error-helper');
-var fsHelper = new FsHelper();
-Q.onerror    = logError;
 
 describe('Docker Registry API', function() {
 
@@ -21,11 +17,11 @@ describe('Docker Registry API', function() {
   before(function() {
     this.timeout(10000);
     // 1 - get endpoint and token
-    return Q.async(function* () {
+    return async(function* () {
       var namespace = 'azukiapp';
       var repository = 'azktcl';
       hubResultAzktcl = yield dockerHub.images(namespace, repository);
-    })();
+    });
   });
 
   beforeEach(function() {
@@ -37,7 +33,7 @@ describe('Docker Registry API', function() {
   });
 
   it('should get tags from azukiapp/azktcl', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
 
       var result = yield dockerRegistry.tags(hubResultAzktcl);
 
@@ -48,7 +44,7 @@ describe('Docker Registry API', function() {
   });
 
   it('should get timeout error', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
       try {
 
         dockerRegistry.request_options =  {
@@ -68,7 +64,7 @@ describe('Docker Registry API', function() {
   });
 
   it('should get tags from library/node', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
       // 1 - get endpoint and token
       var namespace = 'library';
       var repository = 'node';
@@ -90,7 +86,7 @@ describe('Docker Registry API', function() {
   });
 
   it('should get image id by tag name', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
       var tag = '0.0.1';
 
       var result = yield dockerRegistry.getImageIdByTag(hubResultAzktcl,
@@ -102,7 +98,7 @@ describe('Docker Registry API', function() {
   });
 
   it('should get all anscestor of an image id', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
 
       var result = yield dockerRegistry.ancestry(hubResultAzktcl,
         'afecd72a72fc2f815aca4e7fd41bfd01f2e5922cd5fb43a04416e7e291a2b120');
@@ -113,7 +109,7 @@ describe('Docker Registry API', function() {
   });
 
   it('should get all info about an image', function(done) {
-    Q.spawn(function* () {
+    return async(function* () {
 
       var result = yield dockerRegistry.imageJson(hubResultAzktcl,
         '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303');
@@ -126,7 +122,7 @@ describe('Docker Registry API', function() {
 
   it('should get all anscestors layers for azktcl tag', function(done) {
     this.timeout(5000);
-    Q.spawn(function* () {
+    return async(function* () {
       var tag = '0.0.2';
 
       var result = yield dockerRegistry.allAnscestorByTag(hubResultAzktcl, tag);
@@ -138,9 +134,9 @@ describe('Docker Registry API', function() {
 
   it('should get download size only', function(done) {
     this.timeout(3000); // 30 seconds
-    Q.spawn(function* () {
+    return async(function* () {
       var imageId_5 = '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303';
-      var result = yield Q.nfcall(dockerRegistry.downloadImageGetSize(hubResultAzktcl, imageId_5));
+      var result = yield nfcall(dockerRegistry.downloadImageGetSize(hubResultAzktcl, imageId_5));
 
       h.expect(result).to.eql(3069677);
       done();
@@ -149,14 +145,15 @@ describe('Docker Registry API', function() {
 
   it('should get image layer download stream', function(done) {
     this.timeout(15000); // 15 seconds
-    Q.spawn(function* () {
+    return async(function* () {
       var imageId_5 = '15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303';
       var outputFolder = 'spec/docker-registry/output/15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303';
       var outputFile = 'layer.tar';
       var fullPath = path.join(outputFolder, outputFile);
 
       // create output clean folder
-      yield fsHelper.createCleanFolder(outputFolder);
+      yield fsAsync.remove(outputFolder);
+      yield fsAsync.mkdirp(outputFolder);
 
       // download
       var result = yield dockerRegistry.downloadImage(hubResultAzktcl,
@@ -170,7 +167,7 @@ describe('Docker Registry API', function() {
 
   it('should create a folder ready to load', function(done) {
     this.timeout(15000); // 15 seconds
-    Q.spawn(function* () {
+    return async(function* () {
 
       var result = yield dockerRegistry.prepareLoading(
         hubResultAzktcl,
