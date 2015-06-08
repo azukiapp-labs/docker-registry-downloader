@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+
+* Enhancements
+  * [Kernel] removing Q
+  * [Kernel] removing q-io
+  * [Kernel] including bluebird
+  * [Kernel] including azk-dev
+
 ## 0.0.21
 
 * Enhancements

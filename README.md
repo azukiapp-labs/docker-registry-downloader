@@ -1,10 +1,17 @@
 Docker Registry Downloader
 ==========================
 
-Syncronize images from Docker Registry with your local Docker images. Works just like new implementation of `docker pull` downloading severals layers in parallel.
+This package provides several helpers to use Docker APIs.
+
+
+- Syncronize images from Docker Registry with your local Docker images.
+  - works just like new implementation of `docker pull` downloading severals layers in parallel.
+- Compare local layers with registry layers
+
 
 ### Quick-start sample app
-```shell
+
+```sh
 # clone this repo
 git clone git@github.com:azukiapp/docker-registry-downloader.git
 
@@ -21,18 +28,24 @@ docker rmi -f azukiapp/azktcl:0.0.2
 node start.js
 ```
 
+----------------
+
 ### install as a lib
-```shell
+```sh
 npm i docker-registry-downloader --save
 ```
 
+----------------
+
 ### install npm module globally
-```shell
+```sh
 [sudo] npm i docker-registry-downloader -g
 
 # usage example
 registrySync library/ruby:latest -o /var/tmp
 ```
+
+----------------
 
 ### usage
 ```javascript
@@ -54,23 +67,36 @@ dockerHub.images(namespace, repository).then(function(hubResult) {
 });
 ```
 
+----------------
 
-### developer
+### dev
 
-```shell
-# run all tests (slow)
-gulp test
+#### run all tests
 
-# filter tests
-gulp test --grep='should sync azukiapp/azktcl:0.0.2'
-
-# enable "request" debug
-NODE_DEBUG=request gulp test
-
-# enable "REGISTRY" debug
-DOCKER_REGISTRY_DEBUG_LEVEL=debug gulp test
-
-# send authentication
-DOCKER_USER=my_docker_user DOCKER_PASS=my_docker_escapade_password gulp test
+```sh
+gulp
 ```
 
+#### filter tests
+
+```sh
+gulp --grep='should sync azukiapp/azktcl:0.0.2'
+```
+
+#### enable "request" debug
+
+```sh
+export NODE_DEBUG=request
+```
+
+#### enable "REGISTRY" debug
+
+```sh
+export DOCKER_REGISTRY_DEBUG_LEVEL=debug
+```
+
+#### send authentication
+
+```sh
+export DOCKER_USER=my_docker_user DOCKER_PASS=my_docker_escapade_password
+```

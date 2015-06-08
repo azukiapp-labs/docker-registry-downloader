@@ -6,6 +6,7 @@ import { async, nfcall }   from '../../src/helpers/promises';
 var path     = require('path');
 
 describe('Docker Registry API', function() {
+  this.timeout(10000);
 
   var dockerHub = new DockerHub();
   var dockerRegistry = new DockerRegistry();
@@ -15,7 +16,6 @@ describe('Docker Registry API', function() {
   };
 
   before(function() {
-    this.timeout(10000);
     // 1 - get endpoint and token
     return async(function* () {
       var namespace = 'azukiapp';
@@ -64,6 +64,7 @@ describe('Docker Registry API', function() {
   });
 
   it('should get tags from library/node', function(done) {
+    this.timeout(40000);
     return async(function* () {
       // 1 - get endpoint and token
       var namespace = 'library';
@@ -71,7 +72,7 @@ describe('Docker Registry API', function() {
       var hubResultNode = yield dockerHub.images(namespace, repository);
 
       dockerRegistry.request_options = {
-        timeout: 20000,
+        timeout: 40000,
         maxAttempts: 5,
         retryDelay: 500
       };

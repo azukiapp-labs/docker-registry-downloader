@@ -199,13 +199,13 @@ describe('Syncronizer', function() {
   describe('compare repos', function() {
 
     it('should get total size', function(done) {
-      this.timeout(15000);
+      this.timeout(30000);
 
       return async(function* () {
 
-        var namespace = 'saitodisse';
-        var repository = '10mblayers';
-        var tag = 'latest';
+        var namespace  = 'azukiapp';
+        var repository = 'azktcl';
+        var tag = '0.0.1';
 
         var dockerHub = new DockerHub();
         var hubResult = yield dockerHub.images(namespace, repository);
