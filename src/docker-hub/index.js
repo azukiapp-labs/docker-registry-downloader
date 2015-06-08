@@ -1,4 +1,3 @@
-var createPromise   = require('../helpers/promises').createPromise;
 var promiseResolve  = require('../helpers/promises').promiseResolve;
 var request         = require('../helpers/requester').request;
 var DOCKER_HUB_URL  = 'https://index.docker.io';
@@ -19,22 +18,7 @@ class DockerHub {
     this.__request_options = value;
   }
 
-  auth (namespace, user, password) {
-    return createPromise(this, function (resolve, reject) {
-      var url = DOCKER_HUB_URL + '/v1/repositories/' + namespace + '/auth';
-      request.get(url).auth(user, password, false, function (error, response/*, body*/) {
-        if (!error && response.statusCode == 200) {
-          log.debug('\n\n:: docker-hub - auth ::');
-          log.debug(response.headers);
-          resolve(response.headers['set-cookie']);
-        } else {
-          reject(error);
-        }
-      });
-    });
-  }
-
-  images (namespace, repository) {
+  images(namespace, repository) {
     var request_options_local = this.__request_options;
 
     var options = _.assign({
@@ -51,7 +35,7 @@ class DockerHub {
     return request(this, options);
   }
 
-  search (query) {
+  search(query) {
     var options = _.assign({
       url: DOCKER_HUB_URL + '/v1/search',
       qs: {

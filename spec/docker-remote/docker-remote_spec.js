@@ -63,13 +63,4 @@ describe('Docker Remote API', function() {
     });
   });
 
-  // it('should load an image', function(done) {
-  //   return async(function* () {
-  //     var filePath = path.join(__dirname, '../../..', 'spec/docker-registry/output/15e0cd32c467ccef1c162ee17601e34aa28de214116bba3d4698594d810a6303.tar');
-  //     var result = yield dockerRemote.loadImage(filePath);
-  //     h.expect(result).to.not.be.undefined;
-  //     done();
-  //   });
-  // });
-
 });
