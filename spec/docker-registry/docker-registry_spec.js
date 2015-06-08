@@ -4,7 +4,7 @@ import DockerRegistry from '../../src/docker-registry';
 import { async }   from '../../src/helpers/promises';
 
 describe('Docker Registry API', function() {
-  this.timeout(10000);
+  this.timeout(22000);
 
   var dockerHub = new DockerHub();
   var dockerRegistry = new DockerRegistry();

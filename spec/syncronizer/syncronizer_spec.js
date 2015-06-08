@@ -8,6 +8,7 @@ var syncronizer = new Syncronizer();
 describe('Syncronizer', function() {
 
   describe('compare repos', function() {
+    this.timeout(20000);
 
     it('should get null when check an invalid local layer', function(done) {
       return async(function* () {

@@ -1,4 +1,4 @@
-import { async, promisifyAll, createPromise } from './promises';
+import { async, promisifyAll } from './promises';
 var fs = require('fs-extra');
 
 promisifyAll(fs);
