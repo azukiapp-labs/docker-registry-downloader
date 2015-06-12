@@ -4,7 +4,12 @@ import { async }   from '../../src/helpers/promises';
 
 describe('Docker Remote API', function() {
 
-  var dockerRemote = new DockerRemote();
+  var dockerRemote;
+
+  before(function () {
+    dockerRemote = new DockerRemote();
+    return dockerRemote.initialize();
+  });
 
   it('should get all containers', function(done) {
     return async(function* () {

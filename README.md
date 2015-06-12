@@ -23,17 +23,20 @@ var Syncronizer = require('docker-registry-downloader').Syncronizer;
 var dockerHub   = new DockerHub();
 var syncronizer = new Syncronizer();
 
-var namespace   = 'azukiapp';
-var repository  = 'azktcl';
-var tag         = '0.0.2';
+syncronizer.initialize().then(function() {
+  var namespace   = 'azukiapp';
+  var repository  = 'azktcl';
+  var tag         = '0.0.2';
 
-// get token from Docker Hub API
-dockerHub.images(namespace, repository).then(function(hubResult) {
-  // check local layers with Docker Registry API
-  return syncronizer.getLayersDiff(hubResult, tag).then(function (result) {
-    console.log(result);
+  // get token from Docker Hub API
+  dockerHub.images(namespace, repository).then(function(hubResult) {
+    // check local layers with Docker Registry API
+    return syncronizer.getLayersDiff(hubResult, tag).then(function (result) {
+      console.log(result);
+    });
   });
 });
+
 ```
 
 ----------------

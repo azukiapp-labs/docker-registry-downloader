@@ -3,9 +3,14 @@ import Syncronizer from '../../src/syncronizer';
 import DockerHub   from '../../src/docker-hub';
 import { async }   from '../../src/helpers/promises';
 
-var syncronizer = new Syncronizer();
-
 describe('Syncronizer', function() {
+
+  var syncronizer;
+
+  before(function () {
+    syncronizer = new Syncronizer();
+    return syncronizer.initialize();
+  });
 
   describe('compare repos', function() {
     this.timeout(20000);

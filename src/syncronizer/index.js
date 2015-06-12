@@ -6,9 +6,16 @@ import { async }      from '../helpers/promises';
 class Syncronizer {
 
   constructor(dockerode_options, request_options) {
-    this.dockerHub = new DockerHub(request_options);
-    this.dockerRegistry = new DockerRegistry(request_options);
-    this.dockerRemote = new DockerRemote(dockerode_options);
+    this._dockerode_options = dockerode_options;
+    this._request_options   = request_options;
+
+    this.dockerHub          = new DockerHub(this._request_options);
+    this.dockerRegistry     = new DockerRegistry(this._request_options);
+    this.dockerRemote       = new DockerRemote();
+  }
+
+  initialize() {
+    return this.dockerRemote.initialize(this._dockerode_options);
   }
 
   getLayersDiff(hubResult, tag) {

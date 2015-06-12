@@ -1,27 +1,31 @@
-var Docker        = require('dockerode');
-var fs            = require('fs');
-var createPromise = require('../helpers/promises').createPromise;
-var async         = require('../helpers/promises').async;
-var log           = require('../helpers/logger');
-var path          = require('path');
-var _             = require('lodash');
+var Docker         = require('dockerode');
+var fsAsync        = require('file-async');
+var createPromise  = require('../helpers/promises').createPromise;
+var async          = require('../helpers/promises').async;
+var promiseResolve = require('../helpers/promises').promiseResolve;
+var log            = require('../helpers/logger');
+var path           = require('path');
+var _              = require('lodash');
 
 class DockerRemote {
 
-  constructor(dockerode_options) {
+  initialize(dockerode_options) {
     if (dockerode_options && dockerode_options.dockerode_modem) {
       this.docker = new Docker();
       this.docker.modem = dockerode_options.dockerode_modem;
+      return promiseResolve('dockerode_options.dockerode_modem was received');
     } else {
       var socket = process.env.DOCKER_SOCKET ||
                   (dockerode_options && dockerode_options.socket_dockerode) ||
                    '/var/run/docker.sock';
 
-      var stats  = fs.statSync(socket);
-      if (!stats.isSocket()) {
-        throw new Error("Are you sure the docker is running?");
-      }
-      this.docker = new Docker({ socketPath: socket });
+      return fsAsync.stat(socket).then(function(stats) {
+        if (!stats.isSocket()) {
+          throw new Error("Are you sure the docker is running?");
+        }
+        this.docker = new Docker({ socketPath: socket });
+        return promiseResolve('using local unix docker socket: /var/run/docker.sock');
+      }.bind(this));
     }
   }
 

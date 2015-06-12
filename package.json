@@ -18,22 +18,22 @@
     "docker registry"
   ],
   "author": "saitodisse",
-  "license": "Apache License",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/azukiapp/docker-registry-downloader/issues"
   },
   "homepage": "https://github.com/azukiapp/docker-registry-downloader",
   "dependencies": {
-    "babel-runtime": "^5.5.5",
+    "babel-runtime": "^5.5.6",
     "bluebird": "^2.9.27",
-    "cli-color": "^0.3.2",
-    "dockerode": "^2.0.4",
-    "fs-extra": "^0.18.4",
-    "lodash": "^2.4.1",
-    "pretty-bytes": "^1.0.2",
+    "cli-color": "^0.3.3",
+    "dockerode": "^2.1.4",
+    "file-async": "^0.1.1",
+    "lodash": "^2.4.2",
+    "pretty-bytes": "^1.0.4",
     "progress": "^1.1.8",
     "requestretry": "^1.3.1",
-    "source-map-support": "^0.2.7",
+    "source-map-support": "^0.2.10",
     "winston": "^0.8.3",
     "yargs": "^1.3.3"
   },
