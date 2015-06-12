@@ -1,10 +1,10 @@
 {
   "name": "docker-registry-downloader",
-  "version": "0.2.00",
+  "version": "0.2.0",
   "description": "docker registry downloader",
   "main": "index.js",
   "scripts": {
-    "test": "gulp mocha"
+    "test": "gulp test"
   },
   "repository": {
     "type": "git",
