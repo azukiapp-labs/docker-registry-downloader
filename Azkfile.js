@@ -8,28 +8,25 @@ systems({
     // Dependent systems
     depends: [],
     // More images:  http://images.azk.io
-    image: {"dockerfile": "Dockerfile"},
+    image: { "dockerfile": "Dockerfile" },
     // Steps to execute before running instances
     provision: [
       "npm install",
     ],
     workdir: "/azk/#{manifest.dir}",
     shell: "/usr/local/bin/wrapdocker",
-    command: "npm start",
-    wait: {"retry": 20, "timeout": 1000},
+    scalable: false,
     mounts: {
-      '/azk/#{manifest.dir}': path("."),
-    },
-    scalable: {"default": 2},
-    http: {
-      domains: [ "#{system.name}.#{azk.default_domain}" ]
+      '/azk/#{manifest.dir}': sync("."),
+      "/azk/#{manifest.dir}/lib": persistent('lib'),
+      "/azk/#{manifest.dir}/node_modules": persistent('node_modules-#{system.name}'),
     },
     envs: {
       // set instances variables
       NODE_ENV: "dev",
     },
     docker_extra: {
-      start: { Privileged: "true" },
+      HostConfig: { Privileged: true },
     }
   },
 });

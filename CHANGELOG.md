@@ -1,5 +1,10 @@
 # Changelog
 
+## dev
+
+* Enhancements
+  * Fixing `Azkfile.js` to test lib in a isolate sistem;
+
 ## 0.2.0
 
 * Enhancements
