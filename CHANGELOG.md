@@ -4,6 +4,7 @@
 
 * Enhancements
   * Fixing `Azkfile.js` to test lib in a isolate sistem;
+  * Updating dependencies and removing unused;
 
 ## 0.2.0
 

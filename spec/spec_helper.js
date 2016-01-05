@@ -1,10 +1,9 @@
 require('source-map-support').install();
 
-var chai = require('azk-dev/chai');
-chai.use(require('chai-subset'));
+import "babel-polyfill";
 
 var Helpers = {
-  expect: chai.expect,
+  expect: require('azk-dev/lib/chai').expect,
 };
 
 export default Helpers;

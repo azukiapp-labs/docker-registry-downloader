@@ -61,7 +61,7 @@
         "beforeOpeningCurlyBrace": true
     },
 
-    "validateJSDoc": {
+    "jsDoc": {
         "checkParamNames": true,
         "requireParamTypes": true
     },

@@ -1,20 +1,10 @@
-// Lib path
-var path = require('path');
-var lib  = process.env.AZK_LIB_PATH || 'lib';
 
-var azk_gulp = require('azk-dev/gulp')({
+var azk_gulp = require('azk-dev/lib/gulp')({
   cwd  : __dirname,
-  src  : { src: "./src" , dest: path.join(lib, "/src") },
-  spec : { src: "./spec", dest: path.join(lib, "/spec") },
-  mocha: { timeout: 10000 },
-  lint : [ "bin/**/*.js" ],
+  mocha: { timeout: 10000 }
 });
 
 // Load gulp
 var gulp = azk_gulp.gulp;
-
-// Load envs from .env files
-var dotenv = require('dotenv');
-dotenv.load({ silent: true });
 
 gulp.task('lint:babel', "Run lint and babel after this", ['lint', 'babel']);
