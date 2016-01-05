@@ -1,6 +1,6 @@
 # Changelog
 
-## dev
+## 0.3.0 (2016-01-05)
 
 * Enhancements
   * Fixing `Azkfile.js` to test lib in a isolate sistem;
