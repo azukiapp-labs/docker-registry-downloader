@@ -1,6 +1,6 @@
 {
   "name": "docker-registry-downloader",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "docker registry downloader",
   "main": "index.js",
   "scripts": {
@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/azukiapp/docker-registry-downloader",
   "dependencies": {
-    "babel-polyfill": "^6.3.14",
+    "babel-regenerator-runtime": "^6.3.13",
     "bluebird": "^3.1.1",
     "dockerode": "^2.1.4",
     "file-async": "^0.2.0",

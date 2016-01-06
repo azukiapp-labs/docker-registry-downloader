@@ -1,6 +1,6 @@
 require('source-map-support').install();
 
-import "babel-polyfill";
+import "babel-regenerator-runtime";
 
 import DockerHub      from './docker-hub';
 import DockerRegistry from './docker-registry';

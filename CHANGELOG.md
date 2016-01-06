@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1 (2016-01-06)
+
+* Bug
+  * Replacing `babel-polyfill` for `babel-regenerator-runtime`, reducing the amount of dependencies and allowing greater flexibility in the use of lib;
+
 ## 0.3.0 (2016-01-05)
 
 * Enhancements

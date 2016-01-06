@@ -1,6 +1,6 @@
 require('source-map-support').install();
 
-import "babel-polyfill";
+import "babel-regenerator-runtime";
 
 var Helpers = {
   expect: require('azk-dev/lib/chai').expect,
