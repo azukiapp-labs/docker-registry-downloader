@@ -60,7 +60,7 @@ describe('Docker Registry API', function() {
   });
 
   it('should get tags from library/node', function() {
-    this.timeout(40000);
+    this.timeout(100000);
     return async(function* () {
       // 1 - get endpoint and token
       var namespace = 'library';
@@ -68,8 +68,8 @@ describe('Docker Registry API', function() {
       var hubResultNode = yield dockerHub.images(namespace, repository);
 
       dockerRegistry.request_options = {
-        timeout: 40000,
-        maxAttempts: 5,
+        timeout: 100000,
+        maxAttempts: 20,
         retryDelay: 500
       };
       var result = yield dockerRegistry.tags(hubResultNode);

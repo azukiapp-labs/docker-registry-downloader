@@ -1,5 +1,8 @@
 var BB = require('bluebird');
-BB.longStackTraces();
+
+try {
+  BB.longStackTraces();
+} catch (err) {}
 
 var PromisesHelper = {
   __esModule: true,

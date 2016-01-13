@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2 (2016-01-06)
+
+* Bug
+  * Fixing enable log stack traces for Bluebird
+
 ## 0.3.1 (2016-01-06)
 
 * Bug
